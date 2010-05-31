@@ -1,2 +1,2 @@
   * [http://code.google.com/p/idapresentation/wiki/Installation Installation] 
-  * [http://code.google.com/p/idapresentation/wiki/Instroduction Introduction] 
+  * [http://code.google.com/p/idapresentation/wiki/Introduction Introduction] 
