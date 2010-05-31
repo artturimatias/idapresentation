@@ -1,1 +1,2 @@
-[http://code.google.com/p/idapresentation/wiki/Installation label] http://domain/page
+  * [http://code.google.com/p/idapresentation/wiki/Installation Installation] 
+  * [http://code.google.com/p/idapresentation/wiki/Compiling Compile] 
