@@ -1,0 +1,27 @@
+#summary One-sentence summary of this page.
+
+= Decencies =
+
+  * curl 
+  * openscenegraph 
+  * boost-iostreams
+  * tinyxml
+
+
+On Debian-based distros this should install all depecies (except tinyxml): 
+
+`sudo apt-get install libcurl4-openssl-dev libopenscenegraph-dev libboost-iostreams-dev`
+
+Tinyxml in not currently on Ubuntu's repos. 
+
+libtinyxml-dev_2.5.3-3_i386.deb.
+
+
+= Compiling =
+
+`cd idapresentation`
+`make`
+
+= Running demo =
+
+`./viewer --file examples/demo.smil`
