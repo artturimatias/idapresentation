@@ -1,0 +1,113 @@
+<smil>
+    <head>
+        <layout>
+            <root-layout>
+                <!-- image regions -->
+                <regionImage left="0" top="0" width="100" height="100" z="-20" fit="meet" id="bg" />
+                <regionImage left="50" top="25" width="50" height="50" z="-7" fit="meet" id="image" />
+                <regionImage left="20" top="25" width="20" height="20" z="-7" fit="meet" id="arrow" />
+                <regionImage left="90" top="0" width="10" height="10" z="-7" fit="meet" id="logo" src="images/demo.png" />
+                <!-- text regions -->
+                <regionText left="25" top="20" width="100" height="80" z="-2" id="line1" />
+                <regionText left="25" top="25" width="100" height="80" z="-2" id="line2" />
+                <regionText left="25" top="30" width="100" height="80" z="-2" id="line3" />
+                <regionText left="25" top="10" width="100" height="20" z="-3" fontSize="60" id="title" />
+                <regionText left="2" top="98" width="50" height="10" z="-3" fontSize="12" id="perm">Penguing image by winkyintheuk</regionText>
+                <!-- 3D regions -->
+                <region3D left="25" top="30" width="40" height="40" z="-9" id="3d" />
+            </root-layout>
+        </layout>
+    </head>
+    <body>
+        <!-- after the "seq" tag, elements are show in sequential order -->
+        <!-- after the "par" tag, elements are shown in parallel -->
+        <seq>
+            <!-- first "slide" -->
+            <par>
+                <text region="title" dur="20">Showing 3D-models</text>
+                <seq>
+                    <text region="line1" dur="5">Region3D can show 3D-models.</text>
+                    <par>
+                        <text region="line1" dur="15">model src=&quot;models/bars.osg&quot; dur=&quot;10&quot; region=&quot;3d&quot;</text>
+                        <model src="models/color_bars.osg" dur="10" region="3d">
+                            <animate3DCamera attributeName="position" begin="0.0" dur="15.0" from="0,30,0" to="15,-10,20" />
+                        </model>
+                    </par>
+                </seq>
+            </par>
+            <par>
+                <text region="title" dur="20">IDA-presentation</text>
+                <seq>
+                    <text region="line1" dur="5">IDA-presentation is a real-time presentation tool.</text>
+                    <text region="line2" dur="5">It currently supports texts, images and 3D-models.</text>
+                    <text region="line3" dur="5">Syntax of presentations is heavily based on SMIL.</text>
+                </seq>
+            </par>
+            <!-- second "slide" -->
+            <par>
+                <text region="title" dur="20">How does it work?</text>
+                <seq>
+                    <text region="line1" dur="5">First media spesific regions are defined.</text>
+                    <text region="line2" dur="5">Every region has their own timeline (flow).</text>
+                    <text region="line3" dur="5">So there are no &quot;slides&quot;, just timelines.</text>
+                </seq>
+            </par>
+            <!-- third "slide" -->
+            <par>
+                <text region="title" dur="20">Showing images</text>
+                <seq>
+                    <par>
+                        <text region="line1" dur="5">Here is an image region. Let&apos;s load an image and show it for 10 seconds:</text>
+                        <img src="images/arrow.png" dur="5" region="arrow" />
+                    </par>
+                    <par>
+                        <text region="line1" dur="10">img src=&quot;images/penguin.jpg&quot; dur=&quot;10&quot; region=&quot;image&quot;</text>
+                        <img src="images/penguin.jpg" dur="10" region="image" />
+                    </par>
+                </seq>
+            </par>
+            <!-- fourth "slide" -->
+            <par>
+                <text region="title" dur="20">Animation of Regions</text>
+                <seq>
+                    <text region="line1" dur="5">It is possible to animate regions.</text>
+                    <par>
+                        <text region="line1" dur="10">animate attributeName=&quot;position&quot; dur=&quot;5&quot; from=&quot;50,25&quot; to=&quot;0,25&quot;</text>
+                        <img src="images/penguin.jpg" dur="15" region="image">
+                            <animate attributeName="rotation" dur="2" from="0" to="90" />
+                            <animate attributeName="position" begin="5" dur="2" from="50,25" to="0,25" />
+                            <animate attributeName="rotation" begin="10" dur="2" from="90" to="0" />
+                        </img>
+                    </par>
+                </seq>
+            </par>
+            <!-- fifth "slide" -->
+            <par>
+                <text region="title" dur="20">Animation of Media Elements</text>
+                <seq>
+                    <text region="line1" dur="5">It is possible to animate contents of the regions.</text>
+                    <par>
+                        <text region="line1" dur="10">animate attributeName=&quot;panZoom&quot; dur=&quot;5&quot; from=&quot;0,0,100,100&quot; to=&quot;-100,0,100,100&quot;/</text>
+                        <img src="images/penguin.jpg" dur="10" region="image">
+                            <animate attributeName="panZoom" dur="5" from="0,0,100,100" to="-100,0,100,100" />
+                            <animate attributeName="panZoom" begin="5" dur="5" from="-100,0,100,100" to="-75,25,50,50" />
+                        </img>
+                    </par>
+                </seq>
+            </par>
+            <!-- sixth "slide" -->
+            <par>
+                <text region="title" dur="20">Showing 3D-models</text>
+                <seq>
+                    <text region="line1" dur="5">Region3D can show 3D-models.</text>
+                    <par>
+                        <text region="line1" dur="15">model src=&quot;models/color_bars.osg&quot; dur=&quot;10&quot; region=&quot;3d&quot;</text>
+                        <model src="models/color_bars.osg" dur="10" region="3d">
+                            <animate3DCamera attributeName="position" begin="0.0" dur="15.0" from="0,30,0" to="15,-10,20" />
+                        </model>
+                    </par>
+                </seq>
+            </par>
+        </seq>
+    </body>
+</smil>
