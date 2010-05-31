@@ -9,7 +9,7 @@
   * tinyxml
 
 
-On Debian-based distros this should install all depecies (except tinyxml): 
+On Debian-based distros this should install all depecies: 
 
 `apt-get install libcurl4-openssl-dev libopenscenegraph-dev libboost-iostreams-dev libtinyxml-dev`
 
