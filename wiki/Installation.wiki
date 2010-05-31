@@ -1,4 +1,5 @@
 #summary Installation of IDA-Presentation
+#labels Phase-Deploy
 
 = Decencies =
 
