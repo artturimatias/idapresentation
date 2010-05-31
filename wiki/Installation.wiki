@@ -19,9 +19,13 @@ libtinyxml-dev_2.5.3-3_i386.deb.
 
 = Compiling =
 
+There is a makefile in the idapresentation directory:
+
 `cd idapresentation`
 `make`
 
 = Running demo =
+
+A simple demo is located in examples directory:
 
 `./viewer --file examples/demo.smil`
