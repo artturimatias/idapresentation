@@ -22,6 +22,7 @@ http://packages.debian.org/source/sid/tinyxml
 There is a makefile in the idapresentation directory:
 
 `cd idapresentation`
+
 `make`
 
 = Running demo =
