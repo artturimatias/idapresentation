@@ -24,18 +24,6 @@
         <seq>
             <!-- first "slide" -->
             <par>
-                <text region="title" dur="20">Showing 3D-models</text>
-                <seq>
-                    <text region="line1" dur="5">Region3D can show 3D-models.</text>
-                    <par>
-                        <text region="line1" dur="15">model src=&quot;models/bars.osg&quot; dur=&quot;10&quot; region=&quot;3d&quot;</text>
-                        <model src="models/color_bars.osg" dur="10" region="3d">
-                            <animate3DCamera attributeName="position" begin="0.0" dur="15.0" from="0,30,0" to="15,-10,20" />
-                        </model>
-                    </par>
-                </seq>
-            </par>
-            <par>
                 <text region="title" dur="20">IDA-presentation</text>
                 <seq>
                     <text region="line1" dur="5">IDA-presentation is a real-time presentation tool.</text>

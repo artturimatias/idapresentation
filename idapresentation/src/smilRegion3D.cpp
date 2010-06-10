@@ -130,6 +130,7 @@ void SmilRegion3D::parse(const TiXmlNode* xmlNode, const double time) {
         xmlNodes_.push_back(xmlNode);
 
         // set timing keyframe
+        timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin, 0));
         timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin + dur, (float)mediaItems_.size()));
 
         // set fadein/out

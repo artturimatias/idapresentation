@@ -15,6 +15,7 @@ SmilRegionText::SmilRegionText(int left, int top, int w, int h, int z, std::stri
     text->setFont("DejaVuSans.ttf");
     text->setDataVariance(osg::Object::DYNAMIC);   
     text->setAlignment(osgText::Text::LEFT_TOP); 
+    text->setLineSpacing(0.25); 
     setTextSize(18);
     setColor(1.0,1.0,1.0, 1.0f);
     rot_->addChild(textGeode);
