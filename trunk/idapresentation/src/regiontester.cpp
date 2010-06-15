@@ -70,10 +70,10 @@ int main (int argc, char **argv ) {
     camera_hud = PresentationParser::createCamera(width, height);
    // bool  result = osgDB::writeNodeFile( * ( rootMain.get() ) , "Callback.osg" ) ;
 
-    osg::ref_ptr<SmilRegionImage>  reg = new SmilRegionImage(0,0,200,200,0,"reg1");
-    osg::ref_ptr<SmilRegion3D>  reg3D = new SmilRegion3D(250,0,200,200,0,"reg3D");
-    reg->loadFile("examples/images/pojat.jpg");
-    reg3D->loadFile("examples/models/koe.osg");
+    osg::ref_ptr<SmilRegionImage>  reg = new SmilRegionImage(0,0,20,20,-4,"reg1");
+    osg::ref_ptr<SmilRegion3D>  reg3D = new SmilRegion3D(10,0,20,20,-2,"reg3D");
+    reg->loadFile("examples/images/penguin.jpg");
+    reg3D->loadFile("examples/models/color_bars.osg");
     reg->setAlpha(1.0f);
     reg->setRegionColor(1.0f,0.0f,0.0f,1.0f);
     reg3D->setAlpha(1.0f);

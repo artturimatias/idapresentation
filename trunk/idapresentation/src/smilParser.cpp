@@ -417,6 +417,7 @@ float PresentationParser::parseTimeline(TiXmlNode* node, float time) {
                         duration += t;
                         startFrameTime += t;
                     }
+                    std::cout << "parallel end duration (" << duration << ")" << std::endl;
                 
                 }
 
