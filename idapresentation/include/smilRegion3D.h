@@ -16,11 +16,14 @@
 #include <osgAnimation/UpdateCallback> 
 #include "smilRegion.h"
 #include "cameraCallback.h"
+#include <boost/bind.hpp>
 
 enum StringValue {  SetTransform, 
                     Animate3D,
                     Animate3DCamera};
 
+typedef std::map<std::string, osg::ref_ptr<osgAnimation::Vec3LinearChannel> > MapVec3;
+typedef std::map<std::string, osg::ref_ptr<osgAnimation::Vec4LinearChannel> > MapVec4;
 
 class SmilRegion3D:  public SmilRegion {
 public:
@@ -33,6 +36,7 @@ public:
     void loadFile         (const std::string& filename );
     void setupCamera      ();
     void parse3D          (const TiXmlNode* xmlNode, const double time);
+    void set3dKeys  (const TiXmlNode* xmlNode, osgAnimation::Vec3LinearChannel* chPosition, const double time);
 
     osg::Camera* getCamera();
     osg::Node* findNamedNode(const std::string& searchName, osg::Node* currNode);

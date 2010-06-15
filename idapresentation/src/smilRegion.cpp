@@ -47,6 +47,8 @@ SmilRegion::SmilRegion(int left, int top, int w, int h, int z, std::string id)
 
     HE_Geode->setStateSet(stateSet_.get());
 
+    stateSet_->setMode(GL_BLEND, osg::StateAttribute::ON);
+    stateSet_->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
     rot_->addChild(HE_Geode);
 
 }
