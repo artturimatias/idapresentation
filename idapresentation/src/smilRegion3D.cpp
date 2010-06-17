@@ -49,54 +49,48 @@ void SmilRegion3D::setupCamera() {
     osg::StateSet* states = camera->getOrCreateStateSet();
     states->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
-    //states->setMode(GL_BLEND, osg::StateAttribute::ON);
-    //states->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
-
-
- //   camera->setClearColor(osg::Vec4(0.0, 0.1804, 0.1, 0.0));
-
     osg::Camera::RenderTargetImplementation renderImplementation = osg::Camera::FRAME_BUFFER;
-        // tell the camera to use OpenGL frame buffer object where supported.
-        camera->setRenderTargetImplementation(renderImplementation);
+    // tell the camera to use OpenGL frame buffer object where supported.
+    camera->setRenderTargetImplementation(renderImplementation);
 
-       bool useImage;
-       useImage = false;
+   bool useImage;
+   useImage = false;
 
-        if (useImage)
-        {
-            osg::Image* image = new osg::Image;
-            //image->allocateImage(tex_width, tex_height, 32, GL_RGBA, GL_UNSIGNED_BYTE);
-            image->allocateImage(tex_width, tex_height, 1, GL_RGBA, GL_FLOAT);
+    if (useImage)
+    {
+        osg::Image* image = new osg::Image;
+        //image->allocateImage(tex_width, tex_height, 32, GL_RGBA, GL_UNSIGNED_BYTE);
+        image->allocateImage(tex_width, tex_height, 1, GL_RGBA, GL_FLOAT);
 
-            // attach the image so its copied on each frame.
-            camera->attach(osg::Camera::COLOR_BUFFER, image,
-                           samples, colorSamples);
-            
-            //camera->setPostDrawCallback(new MycameraPostDrawCallback(image));
-            
-            // Rather than attach the texture directly to illustrate the texture's ability to
-            // detect an image update and to subload the image onto the texture.  You needn't
-            // do this when using an Image for copying to, as a separate camera->attach(..)
-            // would suffice as well, but we'll do it the long way round here just for demonstration
-            // purposes (long way round meaning we'll need to copy image to main memory, then
-            // copy it back to the graphics card to the texture in one frame).
-            // The long way round allows us to manually modify the copied image via the callback
-            // and then let this modified image by reloaded back.
-            tex_->setImage(0, image);
-            
-        }
-        else
-        {
-            // attach the texture and use it as the color buffer.
-            camera->attach(osg::Camera::COLOR_BUFFER, tex_, 
-                           0, 0, false,
-                           samples, colorSamples);
-        }
-
-
-        camera->addChild(modelTransform_);
-        camera->setUpdateCallback(new CameraUpdateCallback());
+        // attach the image so its copied on each frame.
+        camera->attach(osg::Camera::COLOR_BUFFER, image,
+                       samples, colorSamples);
+        
+        //camera->setPostDrawCallback(new MycameraPostDrawCallback(image));
+        
+        // Rather than attach the texture directly to illustrate the texture's ability to
+        // detect an image update and to subload the image onto the texture.  You needn't
+        // do this when using an Image for copying to, as a separate camera->attach(..)
+        // would suffice as well, but we'll do it the long way round here just for demonstration
+        // purposes (long way round meaning we'll need to copy image to main memory, then
+        // copy it back to the graphics card to the texture in one frame).
+        // The long way round allows us to manually modify the copied image via the callback
+        // and then let this modified image by reloaded back.
+        tex_->setImage(0, image);
+        
     }
+    else
+    {
+        // attach the texture and use it as the color buffer.
+        camera->attach(osg::Camera::COLOR_BUFFER, tex_, 
+                       0, 0, false,
+                       samples, colorSamples);
+    }
+
+
+    camera->addChild(modelTransform_);
+    camera->setUpdateCallback(new CameraUpdateCallback());
+}
 
 osg::Camera* SmilRegion3D::getCamera () {
 
@@ -122,7 +116,7 @@ void SmilRegion3D::parse(const TiXmlNode* xmlNode, const double time) {
 
     if(fileName) {
 
-        float dur = convertToFloat(xmlNode->ToElement()->Attribute("dur"));
+        float mediaDur = convertToFloat(xmlNode->ToElement()->Attribute("dur"));
         float mediaBegin = convertToFloat(xmlNode->ToElement()->Attribute("begin"));
 
         osg::notify(osg::WARN) <<"adding model:" << fileName << " at keyframe time: " << time + mediaBegin << " id: " << mediaItems_.size() << std::endl;
@@ -134,16 +128,14 @@ void SmilRegion3D::parse(const TiXmlNode* xmlNode, const double time) {
         if(mediaItems_.size() == 1 && time > 0)
             timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin, 0));
 
-        timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin + dur, (float)mediaItems_.size()));
+        timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin + mediaDur, (float)mediaItems_.size()));
 
-        // set fadein/out
-        setFadeIn(time + mediaBegin, 1.0, 1.0);
-        setFadeOut(time + mediaBegin + dur, 1.0, 1.0);
-
-
-
+        // set fades if no alpha keys are not set
+        if(!parseAlpha(xmlNode, time)) {
+            setFadeIn(time + mediaBegin, 1.0, 1.0);
+            setFadeOut(time + mediaBegin + mediaDur, 1.0, 1.0);
+        }
     }
-
 }
 
 
@@ -157,13 +149,11 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
     MapVec3 rotationChannels;
     MapVec3::iterator ir;
 
-    // clear camera animation
-    osg::ref_ptr<CameraUpdateCallback> camUpdateCallback = dynamic_cast <CameraUpdateCallback*> (camera->getUpdateCallback());
-    camUpdateCallback->clear();
-    camUpdateCallback->setStartTime();
+    float mainDur = convertToFloat(xmlNode->ToElement()->Attribute("dur"));
+    float mediaBegin = convertToFloat(xmlNode->ToElement()->Attribute("begin"));
+    parse3DCamera(xmlNode, time);
 
-
-    for ( node = xmlNode->FirstChild(); node; node = node->NextSibling("animate3D")) {
+    for ( node = xmlNode->FirstChild("animate3D"); node; node = node->NextSibling("animate3D")) {
         if(node) {
             const char* const sel = node->ToElement()->Attribute("select"); 
             std::string attr = convertToString(node->ToElement()->Attribute("attributeName")); 
@@ -213,9 +203,10 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
         }
     }
 
-        osgAnimation::Animation* anim1 = new osgAnimation::Animation;
-        anim1->setPlaymode(osgAnimation::Animation::ONCE); 
-        manager->registerAnimation(anim1);
+    osgAnimation::Animation* anim1 = new osgAnimation::Animation;
+    anim1->setPlaymode(osgAnimation::Animation::ONCE); 
+    manager->registerAnimation(anim1);
+
     if(positionChannels.size() > 0) {
         // add 3D animation channels to animation
         std::cout << positionChannels.size() << std::endl;
@@ -234,23 +225,24 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
 
     }
 
-        manager->playAnimation(anim1);
-        
-    // set camera
-    const osg::BoundingSphere& bs = modelTransform_->getBound();
-    camera->setViewMatrixAsLookAt(bs.center()-osg::Vec3(0.0f,2.0f,0.0f)*bs.radius(),bs.center(),osg::Vec3(0.0f,0.0f,1.0f));
 
+    manager->playAnimation(anim1);
+/*
+    // set fades if no alpha keys are not set
+    if(!parseAlpha(xmlNode, time)) {
+        setFadeIn(time + mediaBegin, 1.0, 1.0);
+        setFadeOut(time + mediaBegin + mainDur, 1.0, 1.0);
+    }
+    */
 }
 
-/*
 
 
-void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
-
-    char delimiter = ',';
+void SmilRegion3D::parse3DCamera(const TiXmlNode* xmlNode, const double time) {
+        
     const TiXmlNode* node;
-
-    std::map <std::string, osg::Vec3> positionValues;
+    char delimiter = ',';
+    osg::Vec3 fromVec, toVec;
 
     // clear camera animation
     osg::ref_ptr<CameraUpdateCallback> camUpdateCallback = dynamic_cast <CameraUpdateCallback*> (camera->getUpdateCallback());
@@ -258,239 +250,48 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
     camUpdateCallback->setStartTime();
 
 
-    for ( node = xmlNode->FirstChild(); node; node = node->NextSibling()) {
+    // set camera
+    const osg::BoundingSphere& bs = modelTransform_->getBound();
+    camera->setViewMatrixAsLookAt(bs.center()-osg::Vec3(0.0f,3.0f,0.0f)*bs.radius(),bs.center(),osg::Vec3(0.0f,0.0f,1.0f));
+
+
+    for ( node = xmlNode->FirstChild("animate3DCamera"); node; node = node->NextSibling("animate3DCamera")) {
         if(node) {
-            switch (tagList[node->Value()]) {
+            float dur = convertToFloat(node->ToElement()->Attribute("dur")); 
+            const char* const beginStr = node->ToElement()->Attribute("begin"); 
+            std::string attrStr = node->ToElement()->Attribute("attributeName"); 
+            osgAnimation::Vec3KeyframeContainer* keys = camUpdateCallback->getCamPosKeys();
 
-            case SetTransform:
-            {
-                osg::ref_ptr<osg::MatrixTransform> pos = new osg::MatrixTransform;
-                const char* const sel = node->ToElement()->Attribute("select"); 
-                const std::string attrName = convertToString(node->ToElement()->Attribute("attributeName")); 
-                osg::Vec3 posVec; 
-                osg::Vec4 rotVec; 
-                osg::Matrix m ;
-
-                if(attrName == "position") {
-                    const char* posStr = node->ToElement()->Attribute("position"); 
-                    if(posStr) {
-                        std::vector<std::string> vec = split2(posStr,delimiter);
-                        posVec.set(convertToFloat(vec[0]), convertToFloat(vec[1]),convertToFloat(vec[2]));
-                        m.makeTranslate(posVec);
-                    }
-                } else if(attrName == "rotation") {
-                    const char* rotStr = node->ToElement()->Attribute("rotation"); 
-                    if(rotStr) {
-                        std::vector<std::string> vec = split2(rotStr,delimiter);
-                        rotVec.set(osg::DegreesToRadians(convertToFloat(vec[0])), convertToFloat(vec[1]),convertToFloat(vec[2]), convertToFloat(vec[3]));
-                        m.makeRotate(rotVec);
-                    }
-
-                }
-
-                if(sel) {
-                    osg::ref_ptr<osg::Node> osgNode = findNamedNode(sel ,modelTransform_); 
-                    if(osgNode) {
-                        osg::Group* parent = osgNode->getParent(0);
-                        parent->removeChild(osgNode);
-                        pos->addChild(osgNode);
-                        parent->addChild(pos);
-                        pos->setMatrix(m);
-                    }
-                } else {
-                        modelTransform_->setMatrix(m);
-                }
+            if(parseFromTo(node, fromVec, "from", "position")) {
+                insertFromToKey(node, fromVec, "from", keys, 0); // time starts from 0
             }
-            break;
 
-            case Animate3D: 
-            {
-                const char* const sel = node->ToElement()->Attribute("select"); 
-                osg::ref_ptr<osg::MatrixTransform> pos = new osg::MatrixTransform;
-
-                if(sel) {
-                    osg::ref_ptr<osg::Node> osgNode = findNamedNode(sel ,modelTransform_); 
-                    if(osgNode) {
-
-                        // get animation list
-                        osgAnimation::AnimationList a = manager->getAnimationList();
-                        osgAnimation::AnimationList::iterator it;
-                        osgAnimation::ChannelList::iterator itc;
-
-                        // search for animation for selection
-                        it = std::find_if( a.begin(), a.end(), boost::bind( &osgAnimation::Animation::getName, _1 ) == sel );
-                        if(it!=a.end()) {
-                            std::cout << "Found animation for " << (*it)->getName() << std::endl;
-                            osgAnimation::ChannelList channels = (*it)->getChannels();
-
-                            // search position channel
-                            itc = std::find_if( channels.begin(), channels.end(), boost::bind( &osgAnimation::Channel::getName, _1 ) == "position" );
-                            if(itc != channels.end()) {
-                                std::cout << "Found channel " << (*itc)->getName() << std::endl;
-                                osgAnimation::Vec3LinearChannel* chPosition;
-                                chPosition = dynamic_cast<osgAnimation::Vec3LinearChannel*>( (&*itc)->get() );
-
-                              //  chPosition->getOrCreateSampler()->getOrCreateKeyframeContainer()->push_back(osgAnimation::Vec3Keyframe(12.0, osg::Vec3(20,20,0)));
-                                setPositionKeys(node, chPosition, time);
-                            } 
-
-                        // animation not found, initialise.
-                        } else {
-
-                            std::cout << "Animation not found for "  <<  sel  << std::endl;
-                            osgAnimation::UpdateTransform* up = dynamic_cast<osgAnimation::UpdateTransform*> (osgNode->getParent(0)->getUpdateCallback());
-                            if(!up) {
-                                pos->setUpdateCallback(new osgAnimation::UpdateTransform(sel)); 
-                            }
-
-                            osgAnimation::Animation* anim1 = new osgAnimation::Animation;
-
-                            osg::ref_ptr<osgAnimation::Vec3LinearChannel> chPosition = new osgAnimation::Vec3LinearChannel;
-                            setPositionKeys(node, chPosition, time);
-
-                            chPosition->setTargetName(sel);
-                            chPosition->setName("position");
-                            anim1->addChannel(chPosition);
-                            anim1->setName(sel);
-                            anim1->setPlaymode(osgAnimation::Animation::ONCE); 
-                            manager->registerAnimation(anim1);
-                          //  manager->playAnimation(anim1);
-
-                            // insert transformation node
-                            osg::Group* parent = osgNode->getParent(0);
-                            parent->removeChild(osgNode);
-                            pos->addChild(osgNode);
-                            parent->addChild(pos);
-
-
-
-                        }
-
-
-                    }
-                } else {
-
-                }
-
-
-            }
-             break;
-
-            case Animate3DCamera: {
-
-                        const char* const fromStr = node->ToElement()->Attribute("from"); 
-                        const char* const toStr = node->ToElement()->Attribute("to"); 
-                        const char* const durStr = node->ToElement()->Attribute("dur"); 
-                        const char* const beginStr = node->ToElement()->Attribute("begin"); 
-                        std::string attrStr = node->ToElement()->Attribute("attributeName"); 
-                        float dur = 0.0f;
-                        float begin = 0.0f;
-
-                        if(durStr)
-                            dur = convertToFloat(durStr);
-
-                        if(beginStr) {
-                            begin = convertToFloat(beginStr);
-                            dur = begin + dur;
-                        }
-
-                        if(fromStr && toStr) {
-                            
-                            osg::Vec3 fromVec; 
-                            osg::Vec3 toVec; 
-
-                            std::vector<std::string> fromList = split2(fromStr,delimiter);
-                            std::vector<std::string> toList = split2(toStr,delimiter);
-
-                            fromVec.set(convertToFloat(fromList[0]), convertToFloat(fromList[1]),convertToFloat(fromList[2]));
-                            toVec.set(convertToFloat(toList[0]), convertToFloat(toList[1]),convertToFloat(toList[2]));
-                        
-
-
-                            if(camUpdateCallback) {
-                                camUpdateCallback->insert(begin, fromVec, attrStr);
-                                camUpdateCallback->insert(dur, toVec, attrStr);
-                            }
-                        }
-            }
-            break;
-            default:
-                break;
+            if(parseFromTo(node, toVec, "to", "position")) {
+                insertFromToKey(node, toVec, "to", keys, 0);
             }
         }
     }
-
-    // set camera
-    const osg::BoundingSphere& bs = modelTransform_->getBound();
-    camera->setViewMatrixAsLookAt(bs.center()-osg::Vec3(0.0f,2.0f,0.0f)*bs.radius(),bs.center(),osg::Vec3(0.0f,0.0f,1.0f));
-                        osgAnimation::AnimationList a = manager->getAnimationList();
-                        osgAnimation::AnimationList::iterator il;
-                        il = a.begin();
-                            manager->playAnimation(*il);
-
 }
-*/
+
 
 
 void  SmilRegion3D::set3dKeys  (const TiXmlNode* node, osgAnimation::Vec3LinearChannel* channel, const double time) {
 
-    char delimiter = ',';
-    const char* const fromStr = node->ToElement()->Attribute("from"); 
-    const char* const toStr = node->ToElement()->Attribute("to"); 
-    float dur = convertToFloat(node->ToElement()->Attribute("dur"));
-    float begin = convertToFloat(node->ToElement()->Attribute("begin"));
+    osg::Vec3 fromVec, toVec;
+    std::string apu;
+    apu = channel->getName();
+    
 
-    if(fromStr && toStr) {
-        
-        osg::Vec3 fromVec; 
-        osg::Vec3 toVec; 
+    osgAnimation::Vec3KeyframeContainer* keys      = channel->getOrCreateSampler()->getOrCreateKeyframeContainer();
 
-        std::vector<std::string> fromList = split2(fromStr,delimiter);
-        std::vector<std::string> toList = split2(toStr,delimiter);
+    if(parseFromTo(node, fromVec, "from", apu.c_str())) {
+        insertFromToKey(node, fromVec, "from", keys, time);
+    }
 
-        if(channel->getName() == "euler") {
-            fromVec.set(
-                    osg::DegreesToRadians(convertToFloat(fromList[0])),
-                    osg::DegreesToRadians(convertToFloat(fromList[1])),
-                    osg::DegreesToRadians(convertToFloat(fromList[2])));
-
-            toVec.set(
-                    osg::DegreesToRadians(convertToFloat(toList[0])),
-                    osg::DegreesToRadians(convertToFloat(toList[1])),
-                    osg::DegreesToRadians(convertToFloat(toList[2])));
-
-        } else {
-
-            fromVec.set(    
-                        convertToFloat(fromList[0]), 
-                        convertToFloat(fromList[1]),
-                        convertToFloat(fromList[2]));
-            toVec.set(
-                        convertToFloat(toList[0]), 
-                        convertToFloat(toList[1]),
-                        convertToFloat(toList[2]));
-        }
-
-        osgAnimation::Vec3KeyframeContainer* posKeys      = channel->getOrCreateSampler()->getOrCreateKeyframeContainer();
-        // add zero key
-        if(posKeys->size() == 0) 
-            posKeys->push_back(osgAnimation::Vec3Keyframe(0, fromVec));
-
-        float lastKeyTime = posKeys->at(posKeys->size()-1).getTime();
-
-        std::cout << "Setting keys at time: " << time << " lastKeyTime: " << lastKeyTime << std::endl;
-
-        if(lastKeyTime == 0) {
-            posKeys->push_back(osgAnimation::Vec3Keyframe(time + begin, fromVec));
-            posKeys->push_back(osgAnimation::Vec3Keyframe(time + begin + dur, toVec));
-        } else {
-
-            posKeys->push_back(osgAnimation::Vec3Keyframe(lastKeyTime + begin , fromVec));
-            posKeys->push_back(osgAnimation::Vec3Keyframe(lastKeyTime + begin + dur, toVec));
-        }
+    if(parseFromTo(node, toVec, "to", apu.c_str())) {
+        insertFromToKey(node, toVec, "to", keys, time);
     }
 }
-
 
 
 osg::MatrixTransform* SmilRegion3D::findAndAddTransform(const char* const nodeName) {
@@ -506,6 +307,9 @@ osg::MatrixTransform* SmilRegion3D::findAndAddTransform(const char* const nodeNa
      }
         return 0;
 }
+
+
+
 
 void SmilRegion3D::update (const double time) {
 

@@ -1,10 +1,5 @@
 //###########################################################################
-//  File:       hud_element.h
-//  Purpose:    This class represents an individual HUD Element which represents
-//              a 2D rectangle painted on the front of the screen, on top of
-//              all other SceneData. The HUD Element may also contain Text Box
-//              elements. Any Text Box element attached to this HUD Element
-//              will automatically be cleaned up upon class destruction.
+//
 //############################################################################
 
 #ifndef CAMERACALLBACK_H
@@ -28,7 +23,16 @@ class CameraUpdateCallback: public osg::NodeCallback {
         if(attr == "position") {
 
             osgAnimation::Vec3KeyframeContainer* camPosKeys = camPosSampler_->getOrCreateKeyframeContainer();
-            camPosKeys->push_back(osgAnimation::Vec3Keyframe(time, pos));
+            // add zero key
+            if(camPosKeys->size() == 0) {
+                camPosKeys->push_back(osgAnimation::Vec3Keyframe(0, pos));
+                camPosKeys->push_back(osgAnimation::Vec3Keyframe(time, pos));
+            }
+
+            float lastKeyTime = camPosKeys->at(camPosKeys->size()-1).getTime();
+
+            camPosKeys->push_back(osgAnimation::Vec3Keyframe(lastKeyTime, pos));
+
 
         } else if (attr == "targetPosition") {
 
@@ -37,11 +41,16 @@ class CameraUpdateCallback: public osg::NodeCallback {
         }
     }
 
+
+
     void setStartTime () {
 
         startTime_ = osg::Timer::instance()->tick();
 
     }
+
+    osgAnimation::Vec3KeyframeContainer* getCamPosKeys ()          { return camPosSampler_->getOrCreateKeyframeContainer(); }
+    osgAnimation::Vec3KeyframeContainer* getCamTargetKeys ()          { return camTargetPosSampler_->getOrCreateKeyframeContainer(); }
     void setCamPos (osg::Vec3 pos)          {    camPos_ = pos; }
     void setCamTargetPos (osg::Vec3 pos)    {    camTargetPos_ = pos; }
 

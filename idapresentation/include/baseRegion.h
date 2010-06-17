@@ -28,7 +28,7 @@ class BaseRegion: public osg::Referenced {
 public:
     BaseRegion(int left, int top, int w, int h, int z, std::string id);
     
-    void setRegionPosition          (const osg::Vec2 pos);
+    void setRegionPosition          (const osg::Vec3 pos);
     void setRegionRotation          (float angle);
     void setRegionColor             (float r, float g, float b);
     void setFadeIn                  (float time, float dur, float alpha);
@@ -39,10 +39,16 @@ public:
     float getZ                      () { return _z; }
     void setDefDuration             (float dur) {defDuration_ = dur;}
     float getDefDuration            () {return defDuration_;}
+    bool parseAlpha                 (const TiXmlNode* xmlNode, const double time);
 
+    bool parseFromTo                (const TiXmlNode* xmlNode, osg::Vec3& vec, const char* attr, const char* channelType);
+    void insertFromToKey            (const TiXmlNode* node, osg::Vec3& vec, const char* attr, 
+                                        osgAnimation::Vec3KeyframeContainer* keys, const double time);
+    void insertFromToKey            (const TiXmlNode* node, const float val, const char* attr, 
+                                        osgAnimation::FloatKeyframeContainer* keys, const double time);
 
     float getDuration               ();
-    osg::Vec2d& getRegionPosition   ();
+    osg::Vec3d& getRegionPosition   ();
     osg::Vec2d& getRegionSize       ();
    
     osg::MatrixTransform*  getTransform(osg::Vec2 displayS);
@@ -56,7 +62,7 @@ protected:
 
     osg::Vec2d       regionSize;   
     osg::Vec2d       regionSizePixels;   
-    osg::Vec2d       regionPosition;
+    osg::Vec3d       regionPosition;
     osg::Vec3d       regionColor;
     osg::Vec2d       displaySize;   
     float            _z;
@@ -77,7 +83,7 @@ protected:
     osg::ref_ptr<osgAnimation::FloatLinearSampler>  regionRotSampler_;
     osg::ref_ptr<osgAnimation::FloatLinearSampler>  timingSampler_;
     osg::ref_ptr<osgAnimation::FloatLinearSampler>  alphaSampler_;
-    osg::ref_ptr<osgAnimation::Vec2LinearSampler>   regionPosSampler_;
+    osg::ref_ptr<osgAnimation::Vec3LinearSampler>   regionPosSampler_;
 
 
 };

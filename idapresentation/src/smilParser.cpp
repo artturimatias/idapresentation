@@ -395,30 +395,34 @@ float PresentationParser::parseTimeline(TiXmlNode* node, float time) {
                 switch (tagList[node_2->Value()]) {
 
                 case Seq:
-                    std::cout << node->Value() << "->SEQUENCE (" << startFrameTime << ")" << std::endl;
-                    // in sequence time is added
                     t =  parseTimeline(node_2, startFrameTime);
+                    // if parent node is sequence, then duration is duration + duration + duration...
+                    // else duration is the longest duration
                     if(tagList[node->Value()] != Par){
+
                         duration += t;
                         startFrameTime += t;
+
                     } else {
 
-                    //    duration += t;
+                        if(t > duration)
+                            duration = t;
                     }
-                    std::cout << "sequence end duration (" << duration << ")" << std::endl;
                 break;
 
                 case Par: {
 
-                    std::cout << "PARALLEL (" << startFrameTime << ")" << std::endl;
                     t = parseTimeline(node_2, startFrameTime);
-                    // if parent node is sequence, then duration is duration + duration + duration...
                     if(tagList[node->Value()] != Par) {
+
                         duration += t;
                         startFrameTime += t;
+
+                    } else {
+
+                        if(t > duration)
+                            duration = t;
                     }
-                    std::cout << "parallel end duration (" << duration << ")" << std::endl;
-                
                 }
 
                 break;
@@ -461,12 +465,12 @@ float PresentationParser::parseTimeline(TiXmlNode* node, float time) {
                     std::cout << node->Value() <<"->TEXT (" << startFrameTime << ")" << std::endl;
                     // media element must have target region and duration
                     if(node_2->ToElement()->Attribute("region") && node_2->ToElement()->Attribute("dur")) {
+                        std::string id = node_2->ToElement()->Attribute("region");
                         try {
-                            std::string id = node_2->ToElement()->Attribute("region");
                             regions_.at(id)->parse(node_2, startFrameTime);
                             getRightTime(node_2, node, startFrameTime, duration);
                         } catch (...) {
-
+                            std::cout << "region " << id << " parse failed!" << std::endl; 
                         }
 
                     }
@@ -497,11 +501,11 @@ void PresentationParser::getRightTime(TiXmlNode* node, TiXmlNode* parent,  float
 
     // if parent is sequence then duration is duration + duration + duration etc.
     if(tagList[parent->Value()] == Seq) {
-        startFrameTime += dur;
-        duration = duration + dur; 
+        startFrameTime = startFrameTime + begin + dur;
+        duration = duration + begin + dur; 
     }
 
-    // if parent is "par" then duration is the biggest duration
+    // if parent is "par" then duration is the biggest duration and startFrameTime does not increase
     if(tagList[parent->Value()] == Par) {
         std::cout << "Parent is PAR" << std::endl;
         // if there is a begin value, then duration is begin + duration

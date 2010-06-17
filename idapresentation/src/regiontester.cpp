@@ -16,7 +16,7 @@
 #include "smilUdpClient.h"
 #include <boost/algorithm/string.hpp>
 
-int main (int argc, char **argv ) {
+int main (void) {
 
 
     osg::ref_ptr<osg::Group> rootMain = new osg::Group;
@@ -39,13 +39,6 @@ int main (int argc, char **argv ) {
 
     wsi->getScreenResolution(osg::GraphicsContext::ScreenIdentifier(0), width, height);
     std::cout << "display:" << width << " " << height << std::endl;
-
-    //windows[0]->getWindowRectangle(x, y, w_width, w_height);
-   // x = (int) camera->getViewport()->x(); 
-  //  std::cout << "window:" << x << " " << x << std::endl;
-
-    //std::cout << (int)&camera->getViewport()->x << " " << (int)&camera->getViewport()->y << std::endl;
-
 
     camera->setProjectionMatrixAsPerspective(
        45.0,
@@ -72,7 +65,7 @@ int main (int argc, char **argv ) {
 
     osg::ref_ptr<SmilRegionImage>  reg = new SmilRegionImage(0,0,20,20,-4,"reg1");
     osg::ref_ptr<SmilRegion3D>  reg3D = new SmilRegion3D(10,0,20,20,-2,"reg3D");
-    reg->loadFile("examples/images/penguin.jpg");
+    reg->loadFile("examples/images/tux.png");
     reg3D->loadFile("examples/models/color_bars.osg");
     reg->setAlpha(1.0f);
     reg->setRegionColor(1.0f,0.0f,0.0f,1.0f);
@@ -85,9 +78,7 @@ int main (int argc, char **argv ) {
 
     while(!viewer.done()) {
     
-     //   pp->update();
         viewer.frame();
-
 
     }
 
