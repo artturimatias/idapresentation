@@ -16,7 +16,7 @@
   </head>
  <body>
 
-   <!-- after the "seq" tag, elements are show in sequential order -->
+   <!-- after the "seq" tag, elements are shown in sequential order -->
    <!-- after the "par" tag, elements are shown in parallel -->
    <seq>
 
@@ -30,21 +30,28 @@
           <text region="line1" dur="5">Just a second ...
           </text>
           <model src="models/bridge.osg" dur="10" region="3d" >
-              <animate3D attributeName="rotation" select="lid" begin="2"  dur="2" from="0,0,0" to="0,-90,0"/>
-              <animate3D attributeName="rotation" select="lid" begin="1"  dur="2" from="0,-90,0" to="0,0,0"/>
+              <animate   attributeName="alpha"                           dur="1" to="1.0" />
+              <animate   attributeName="alpha"                           dur="1" to="0.0" />
+              <animate   attributeName="alpha"                           dur="1" to="1.0" />
+              <animate   attributeName="alpha"                  wait="6" dur="1" to="0.0" />
+
+              <animate3D attributeName="rotation" select="lid" wait="2"  dur="2" from="0,90,0" to="0,-90,0"/>
+              <animate3D attributeName="rotation" select="lid" wait="1"  dur="2" to="0,0,0"/>
 
 
 
            </model>
 
             <model src="models/color_bars.osg" dur="5" region="3d" >
-              <animate3D attributeName="rotation" select="blue"             dur="2" from="0,0,0" to="0,90,0"/>
-              <animate3D attributeName="rotation" select="blue" begin="1"   dur="1" from="0,90,0" to="0,0,0"/>
-              <animate3D attributeName="position" select="blue"             dur="2" from="-200,0,0" to="0,0,0"/>
-              <animate3D attributeName="position" select="blue"             dur="5" from="0,0,0" to="0,0,0"/>
-              <animate3D attributeName="position" select="blue"             dur="3" from="0,0,0" to="0,0,20"/>
-              <animate3D attributeName="position" select="green"            dur="2" from="-200,0,0" to="0,0,0"/>
-              <animate3D attributeName="position" select="green"            dur="2" from="0,0,0" to="0,0,20"/>
+              <animate3D attributeName="rotation" select="blue"             dur="1" from="0,0,0" to="0,90,0"/>
+              <animate3D attributeName="rotation" select="blue" wait="1"    dur="1" to="0,0,0"/>
+
+              <animate3D attributeName="position" select="blue"             dur="1" from="-200,0,0" to="0,0,0"/>
+              <animate3D attributeName="position" select="blue" wait="1"    dur="2" to="0,0,20"/>
+
+              <animate3D attributeName="position" select="green"            dur="1" from="-200,0,0" to="0,0,0"/>
+              <animate3D attributeName="position" select="green" wait="1"   dur="1" to="0,0,20"/>
+
 
              </model>
       </seq>

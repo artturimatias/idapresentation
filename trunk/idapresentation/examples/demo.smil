@@ -27,9 +27,9 @@
     <!-- first "slide" -->
 
      <par>
-	   <text region="title" dur="20">What is IDA-presentation?</text>
+	   <text region="title" begin="2" dur="20">What is IDA-presentation?</text>
        <seq>
-         <text region="line1" dur="5" >IDA-presentation is a real-time presentation tool.
+         <text region="line1" begin="4" dur="5" >IDA-presentation is a real-time presentation tool.
  	     </text>
          <text region="line1" dur="5" >It currently supports texts, images and 3D-models.
          </text>
@@ -39,11 +39,14 @@
     </par>
 
      <par>
-	   <text region="title" dur="15">What is IDA-presentation not?</text>
+
+	   <text region="title" begin="2" dur="20">What is IDA-presentation not?</text>
        <seq>
-         <text region="line1" dur="5" >It is not an animation tool.
+         <text region="line1" begin="4" dur="5" >It is not an animation tool.
  	     </text>
          <text region="line1" dur="5" >It is not interactive.
+         </text>
+         <text region="line1" dur="5" >It is NOT a SMIL application!.
          </text>
       </seq>
     </par>
@@ -51,10 +54,10 @@
     <!-- second "slide" -->
 
     <par>
-      <text region="title" dur="20">How does it work?
+      <text region="title" begin="2" dur="20">How does it work?
       </text>
         <seq>
-          <text region="line1" dur="5" >First media spesific regions are defined. 
+          <text region="line1" begin="4" dur="5" >First media spesific regions are defined. 
           </text>
           <text region="line1" dur="5" >Every region has their own timeline (flow).
           </text>
@@ -66,13 +69,13 @@
     <!-- third "slide" -->
 
     <par>
-      <text region="title" dur="20">Showing images
+      <text region="title" begin="2" dur="20">Showing images
       </text>
         <seq>
           <par>
-            <text region="line1" dur="5" >Here is an image region. Let's load an image and show it for 10 seconds:
+            <text region="line1" begin="2" dur="5" >Here is an image region. Let's load an image and show it for 10 seconds:
             </text>
-            <img src="images/arrow.png" dur="5" region="arrow" />
+            <img src="images/arrow.png" begin="2" dur="5" region="arrow" />
           </par>
           <par>
             <text region="line1" dur="10" >img src="images/penguin.jpg" dur="10" region="image"
@@ -85,18 +88,18 @@
     <!-- fourth "slide" -->
 
     <par>
-      <text region="title" dur="20">Animation of Regions
+      <text region="title" begin="2" dur="20">Animation of Regions
       </text>
         <seq>
-          <text region="line1" dur="5" >It is possible to animate regions. 
+          <text region="line1" begin="4" dur="5" >It is possible to animate regions. 
           </text>
           <par>
             <text region="line1" dur="10" >animate attributeName="position" dur="5" from="50,25" to="0,25"
             </text>
 		    <img src="images/tux.png" dur="15" region="image" >
-              <animate attributeName="rotation" dur="2" from="0" to="90"/>
-              <animate attributeName="position" begin="5" dur="2" from="50,25" to="0,25"/>
-              <animate attributeName="rotation" begin="10" dur="2" from="90" to="0"/>
+              <animate attributeName="rotation" dur="2" to="90"/>
+              <animate attributeName="position" dur="2" to="0,25"/>
+              <animate attributeName="rotation" dur="2" to="0"/>
             </img>
           </par>
         </seq>
@@ -105,17 +108,17 @@
     <!-- fifth "slide" -->
 
     <par>
-      <text region="title" dur="20">Animation of Media Elements
+      <text region="title" begin="2" dur="20">Animation of Media Elements
       </text>
         <seq>
-          <text region="line1" dur="5" >It is possible to animate contents of the regions. 
+          <text region="line1" begin="4" dur="5" >It is possible to animate contents of the regions. 
           </text>
           <par>
             <text region="line1" dur="10" >animate attributeName="panZoom" dur="5" from="0,0,100,100" to="-100,0,100,100"/
             </text>
 		    <img src="images/tux.png" dur="10" region="image" >
-              <animate attributeName="panZoom" dur="5" from="0,0,100,100" to="-100,0,100,100"/>
-              <animate attributeName="panZoom" begin="5" dur="5" from="-100,0,100,100" to="-75,25,50,50"/>
+              <animate attributeName="panZoom" dur="5" to="-100,0,100,100"/>
+              <animate attributeName="panZoom" dur="5" to="-75,25,50,50"/>
             </img>
           </par>
         </seq>
@@ -124,16 +127,16 @@
     <!-- sixth "slide" -->
 
     <par>
-      <text region="title" dur="20">Showing 3D-models
+      <text region="title" begin="2" dur="20">Showing 3D-models
       </text>
         <seq>
-          <text region="line1" dur="5" > Region3D can show 3D-models.
+          <text region="line1" begin="4" dur="5" > Region3D can show 3D-models.
           </text>
           <par>
             <text region="line1" dur="15" >model src="models/color_bars.osg" dur="10" region="3d"
             </text>
             <model src="models/color_bars.osg" dur="10" region="3d" >
-              <animate3DCamera attributeName="position"              begin="0.0" dur="15.0" from="0,30,0" to="15,-10,20"/>
+              <animate3DCamera attributeName="position" dur="15.0" to="15,-10,20"/>
              </model>
           </par>
         </seq>
