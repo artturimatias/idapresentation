@@ -4,9 +4,10 @@ BaseRegion::BaseRegion(int left, int top, int w, int h, int z, std::string id)
     :color_(new osg::Vec4Array())
 {
     alphaSampler_       = new osgAnimation::FloatLinearSampler;
-    regionRotSampler_   = new osgAnimation::FloatLinearSampler;
     timingSampler_      = new osgAnimation::FloatLinearSampler;
+    regionRotSampler_   = new osgAnimation::FloatLinearSampler;
     regionPosSampler_   = new osgAnimation::Vec3LinearSampler;
+    panZoomSampler_     = new osgAnimation::Vec4LinearSampler;
     
     // zero frame
     osgAnimation::FloatKeyframeContainer* timingKeys        = timingSampler_->getOrCreateKeyframeContainer();
@@ -43,23 +44,26 @@ void BaseRegion::parse (const TiXmlNode* xmlNode, const double time) {
 
 
     enum StringValue { Undefined,Rotation,
-                        Position}; 
+                        Position, PanZoom}; 
 
     std::map <std::string, int> tagList;
     tagList["none"] =  Undefined;
     tagList["position"] =  Position;
     tagList["rotation"] =  Rotation;
+    tagList["panZoom"] =  PanZoom;
 
     float mainDur = convertToFloat(xmlNode->ToElement()->Attribute("dur"));
     float mediaBegin = convertToFloat(xmlNode->ToElement()->Attribute("begin"));
+    float mediaStartTime = time + mediaBegin;
 
     osgAnimation::FloatKeyframeContainer* regionRotKeys     = regionRotSampler_->getOrCreateKeyframeContainer();
     osgAnimation::Vec3KeyframeContainer* regionPosKeys      = regionPosSampler_->getOrCreateKeyframeContainer();
+    osgAnimation::Vec4KeyframeContainer* panZoomKeys        = panZoomSampler_->getOrCreateKeyframeContainer();
 
     // set fades if no alpha keys are not set
-    if(!parseAlpha(xmlNode, time)) {
-        setFadeIn(time + mediaBegin, 1.0, 1.0);
-        setFadeOut(time + mediaBegin + mainDur, 1.0, 1.0);
+    if(!parseAlpha(xmlNode, mediaStartTime)) {
+        setFadeIn(mediaStartTime, 1.0, 1.0);
+        setFadeOut(mediaStartTime + mainDur, 1.0, 1.0);
     }
 
     const TiXmlNode* node;
@@ -75,29 +79,48 @@ void BaseRegion::parse (const TiXmlNode* xmlNode, const double time) {
                     // first key value is the initial region position, not zero
                     if(regionPosKeys->size() == 0) {
                         regionPosKeys->push_back(osgAnimation::Vec3Keyframe(0, getRegionPosition()));
-                        regionPosKeys->push_back(osgAnimation::Vec3Keyframe(time, getRegionPosition()));
+                        regionPosKeys->push_back(osgAnimation::Vec3Keyframe(mediaStartTime, getRegionPosition()));
                     }
 
                     if(parseFromTo(node, fromVec, "from", "region_position")) {
-                        insertFromToKey(node, fromVec, "from", regionPosKeys, time);
+                        insertFromToKey(node, fromVec, "from", regionPosKeys, mediaStartTime);
                     }
 
                     if(parseFromTo(node, toVec, "to", "region_position")) {
-                        insertFromToKey(node, toVec, "to", regionPosKeys, time);
+                        insertFromToKey(node, toVec, "to", regionPosKeys, mediaStartTime);
                     }
                     break;
                 }
-                 case Rotation: {
+                case Rotation: {
 
                     const char* fromStr = node->ToElement()->Attribute("from");
                     const char* toStr = node->ToElement()->Attribute("to");
 
                     if(fromStr)
-                        insertFromToKey(node, convertToFloat(fromStr), "from", regionRotKeys, time);
+                        insertFromToKey(node, convertToFloat(fromStr), "from", regionRotKeys, mediaStartTime);
                     if(toStr)
-                        insertFromToKey(node, convertToFloat(toStr), "to", regionRotKeys, time);
+                        insertFromToKey(node, convertToFloat(toStr), "to", regionRotKeys, mediaStartTime);
 
                     break;
+                }
+                case PanZoom: {
+                    osg::Vec4 fromPanVec, toPanVec;
+
+                    // first key value is the initial region position, not zero
+                    if(panZoomKeys->size() == 0) {
+                        panZoomKeys->push_back(osgAnimation::Vec4Keyframe(0, osg::Vec4(0.0,0.0,1.0,1.0)));
+                        panZoomKeys->push_back(osgAnimation::Vec4Keyframe(mediaStartTime, osg::Vec4(0.0,0.0,1.0,1.0)));
+                    }
+
+                    if(parsePanZoom(node, fromPanVec, "from")) {
+                        insertFromToKey(node, fromPanVec, "from", panZoomKeys, mediaStartTime);
+                    }
+
+                    if(parsePanZoom(node, toPanVec, "to")) {
+                        insertFromToKey(node, toPanVec, "to", panZoomKeys, mediaStartTime);
+                    }
+
+                break;
                 }
             }
         }
@@ -113,9 +136,7 @@ bool BaseRegion::parseAlpha(const TiXmlNode* xmlNode, const double time) {
     for ( node = xmlNode->FirstChild("animate"); node; node = node->NextSibling("animate")) {
         if(node) {
             const char* const fromStr = node->ToElement()->Attribute("from"); 
-            float toVal = convertToFloat(node->ToElement()->Attribute("to")); 
-            float dur = convertToFloat(node->ToElement()->Attribute("dur")); 
-            float wait = convertToFloat(node->ToElement()->Attribute("wait")); 
+            const char* const toStr = node->ToElement()->Attribute("to"); 
             std::string attrStr = node->ToElement()->Attribute("attributeName"); 
 
             if(attrStr == "alpha") {
@@ -123,19 +144,11 @@ bool BaseRegion::parseAlpha(const TiXmlNode* xmlNode, const double time) {
                 foundAlpha = true;
                 osgAnimation::FloatKeyframeContainer* keys = alphaSampler_->getOrCreateKeyframeContainer();
 
-                // add zero key
-                if(keys->size() == 0) {
-                    keys->push_back(osgAnimation::FloatKeyframe(time, 0.0f));
-                }
+                if(fromStr)
+                    insertFromToKey(node, convertToFloat(fromStr), "from", keys, time);
+                if(toStr)
+                    insertFromToKey(node, convertToFloat(toStr), "to", keys, time);
 
-
-                float lastKeyTime = keys->at(keys->size()-1).getTime();
-                // if we have "wait" state then we must copy the last key value before we insert "from" value
-                if(wait != 0 ) {
-                    keys->push_back(osgAnimation::FloatKeyframe(lastKeyTime + wait, keys->at(keys->size()-1).getValue()));
-                }
-
-                keys->push_back(osgAnimation::FloatKeyframe(lastKeyTime + wait + dur , toVal));
             }
         }
     }
@@ -309,9 +322,28 @@ bool BaseRegion::parseFromTo(const TiXmlNode* xmlNode, osg::Vec3& vec, const cha
     } else {
         return false;
     }
-
 }
 
+
+
+bool BaseRegion::parsePanZoom(const TiXmlNode* xmlNode, osg::Vec4& vec, const char* attr) {
+
+    char delimiter = ',';
+    const char* const str = xmlNode->ToElement()->Attribute(attr); 
+    if(str) {
+        std::vector<std::string> valueList = split2(str,delimiter);
+        vec.set(
+                convertToFloat(valueList[0])/100,
+                convertToFloat(valueList[1])/100,
+                convertToFloat(valueList[2])/100,
+                convertToFloat(valueList[3])/100);
+
+        return true;
+
+    } else {
+        return false;
+    }
+}
 
 
 
@@ -319,6 +351,7 @@ void BaseRegion::insertFromToKey(const TiXmlNode* node, float val, const char* a
 
     float dur = convertToFloat(node->ToElement()->Attribute("dur"));
     float wait = convertToFloat(node->ToElement()->Attribute("wait"));
+    const char* aName = node->ToElement()->Attribute("attributeName");
 
 
      // add zero key
@@ -334,16 +367,25 @@ void BaseRegion::insertFromToKey(const TiXmlNode* node, float val, const char* a
 
     float lastKeyTime = keys->at(keys->size()-1).getTime();
 
-    std::cout << "Setting key \"" << attr << "\" at time: " << time << " lastKeyTime: " << lastKeyTime << std::endl;
     // if we have "wait" state then we must copy the last key value before we insert "from" value
     if(wait != 0 ) {
         keys->push_back(osgAnimation::FloatKeyframe(lastKeyTime + wait, keys->at(keys->size()-1).getValue()));
     }
 
+    // if last key is in "the past", then we must copy it to current time
+    if(lastKeyTime < time) {
+
+        keys->push_back(osgAnimation::FloatKeyframe(time + wait, keys->at(keys->size()-1).getValue()));
+        lastKeyTime = time + wait;
+        std::cout << "copying last key" << std::endl;
+    }
+
     if(strcmp(attr, "from") == 0) {
         keys->push_back(osgAnimation::FloatKeyframe(lastKeyTime + wait , val));   
+        std::cout << "Setting key \"" << aName << "\" at time: " << lastKeyTime + wait << " lastKeyTime: " << lastKeyTime << std::endl;
     } else {
         keys->push_back(osgAnimation::FloatKeyframe(lastKeyTime + wait + dur , val));   
+        std::cout << "Setting key \"" << aName << "\" at time: " << lastKeyTime + wait << " lastKeyTime: " << lastKeyTime << std::endl;
     }
 }
 
@@ -374,6 +416,13 @@ void BaseRegion::insertFromToKey(const TiXmlNode* node, osg::Vec3& vec, const ch
     if(wait != 0 ) {
         keys->push_back(osgAnimation::Vec3Keyframe(lastKeyTime + wait, keys->at(keys->size()-1).getValue()));
     }
+    // if last key is in "the past", then we must copy it to current time
+    if(lastKeyTime < time) {
+
+        keys->push_back(osgAnimation::Vec3Keyframe(time + wait, keys->at(keys->size()-1).getValue()));
+        lastKeyTime = time + wait;
+    }
+
 
     if(strcmp(attr, "from") == 0) {
         keys->push_back(osgAnimation::Vec3Keyframe(lastKeyTime + wait , vec));   
@@ -381,6 +430,48 @@ void BaseRegion::insertFromToKey(const TiXmlNode* node, osg::Vec3& vec, const ch
         keys->push_back(osgAnimation::Vec3Keyframe(lastKeyTime + wait + dur , vec));   
     }
 }
+
+
+void BaseRegion::insertFromToKey(const TiXmlNode* node, osg::Vec4& vec, const char* attr, osgAnimation::Vec4KeyframeContainer* keys, const double time) {
+
+    float dur = convertToFloat(node->ToElement()->Attribute("dur"));
+    float wait = convertToFloat(node->ToElement()->Attribute("wait"));
+
+    osg::Vec4 zeroValues = osg::Vec4(0.0,0.0,1.0,1.0);
+
+     // add zero key
+    if(keys->size() == 0) {
+        if(strcmp(attr, "from") == 0) {
+            keys->push_back(osgAnimation::Vec4Keyframe(0, vec));
+            keys->push_back(osgAnimation::Vec4Keyframe(time, vec));
+        } else {
+            keys->push_back(osgAnimation::Vec4Keyframe(0, zeroValues));
+            keys->push_back(osgAnimation::Vec4Keyframe(time, zeroValues));
+        }
+    }
+
+    float lastKeyTime = keys->at(keys->size()-1).getTime();
+
+    std::cout << "Setting key \"" << attr << "\" at time: " << time << " lastKeyTime: " << lastKeyTime << std::endl;
+    // if we have "wait" state then we must copy the last key value before we insert "from" value
+    if(wait != 0 ) {
+        keys->push_back(osgAnimation::Vec4Keyframe(lastKeyTime + wait, keys->at(keys->size()-1).getValue()));
+    }
+    // if last key is in "the past", then we must copy it to current time
+    if(lastKeyTime < time) {
+
+        keys->push_back(osgAnimation::Vec4Keyframe(time + wait, keys->at(keys->size()-1).getValue()));
+        lastKeyTime = time + wait;
+    }
+
+
+    if(strcmp(attr, "from") == 0) {
+        keys->push_back(osgAnimation::Vec4Keyframe(lastKeyTime + wait , vec));   
+    } else {
+        keys->push_back(osgAnimation::Vec4Keyframe(lastKeyTime + wait + dur , vec));   
+    }
+}
+
 
 
 

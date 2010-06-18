@@ -42,8 +42,11 @@ public:
     bool parseAlpha                 (const TiXmlNode* xmlNode, const double time);
 
     bool parseFromTo                (const TiXmlNode* xmlNode, osg::Vec3& vec, const char* attr, const char* channelType);
+    bool parsePanZoom               (const TiXmlNode* xmlNode, osg::Vec4& vec, const char* attr);
     void insertFromToKey            (const TiXmlNode* node, osg::Vec3& vec, const char* attr, 
                                         osgAnimation::Vec3KeyframeContainer* keys, const double time);
+    void insertFromToKey            (const TiXmlNode* node, osg::Vec4& vec, const char* attr, 
+                                        osgAnimation::Vec4KeyframeContainer* keys, const double time);
     void insertFromToKey            (const TiXmlNode* node, const float val, const char* attr, 
                                         osgAnimation::FloatKeyframeContainer* keys, const double time);
 
@@ -79,11 +82,13 @@ protected:
     osg::ref_ptr<osg::MatrixTransform>  pos_;
     osg::ref_ptr<osg::MatrixTransform>  rot_;
 
+    std::vector<std::string>                        mediaItems_;
     osg::ref_ptr<osg::Vec4Array>                    color_;
     osg::ref_ptr<osgAnimation::FloatLinearSampler>  regionRotSampler_;
     osg::ref_ptr<osgAnimation::FloatLinearSampler>  timingSampler_;
     osg::ref_ptr<osgAnimation::FloatLinearSampler>  alphaSampler_;
     osg::ref_ptr<osgAnimation::Vec3LinearSampler>   regionPosSampler_;
+    osg::ref_ptr<osgAnimation::Vec4LinearSampler>   panZoomSampler_;
 
 
 };

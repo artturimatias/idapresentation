@@ -3,7 +3,6 @@
 SmilRegionImage::SmilRegionImage(int left, int top, int w, int h, int z, std::string id)
   :SmilRegion(left, top, w, h, z, id)
 {
-    panZoomSampler_ = new osgAnimation::Vec4LinearSampler;
     tex_ = new osg::Texture2D();
     texMat_ = new osg::TexMat;
 
@@ -27,7 +26,6 @@ SmilRegionImage::SmilRegionImage(int left, int top, int w, int h, int z, std::st
     }
 
     HE_Geometry->setColorBinding (osg::Geometry::BIND_OFF);
-    defDuration_ = 5.0;
 
 
 }
@@ -36,22 +34,9 @@ void SmilRegionImage::parse (const TiXmlNode* xmlNode, const double time) {
 
     SmilRegion::parse(xmlNode, time);
 
-    char delimiter = ',';
-    enum StringValue { NotDefined, 
-                        PanZoom,
-                        Rotation,
-                        Position}; 
-
-    std::map <std::string, int> tagList;
-    tagList["none"] =  NotDefined;
-    tagList["panZoom"] =  PanZoom;
-
-
-    osgAnimation::Vec4KeyframeContainer* panZoomKeys        = panZoomSampler_->getOrCreateKeyframeContainer();
     osgAnimation::FloatKeyframeContainer* timingKeys        = timingSampler_->getOrCreateKeyframeContainer();
 
     float dur = convertToFloat(xmlNode->ToElement()->Attribute("dur"));
-    if(dur == 0.0) dur = defDuration_;
     float mediaBegin = convertToFloat(xmlNode->ToElement()->Attribute("begin"));
     const char* fileName = xmlNode->ToElement()->Attribute("src"); 
 
@@ -65,11 +50,7 @@ void SmilRegionImage::parse (const TiXmlNode* xmlNode, const double time) {
         timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin + dur, (float)mediaItems_.size()));
     }
 
-
-    // set fadein/out
-    setFadeIn(time + mediaBegin, 1.0, 1.0);
-    setFadeOut(time + mediaBegin + dur, 1.0, 1.0);
-
+/*
     // set panzoom animation
     panZoomKeys->push_back(osgAnimation::Vec4Keyframe(time, osg::Vec4(0,0,1,1)));
 
@@ -126,6 +107,7 @@ void SmilRegionImage::parse (const TiXmlNode* xmlNode, const double time) {
             }            
         }
     }
+    */
 
 }
 
