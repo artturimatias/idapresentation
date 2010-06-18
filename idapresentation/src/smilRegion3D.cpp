@@ -98,18 +98,9 @@ osg::Camera* SmilRegion3D::getCamera () {
 
 }
 
-/*
-// set flow's texture to the geode
-void SmilRegion3D::setRegion(osg::ref_ptr<SmilRegion> region) {
-
-    region->getSurface()->setStateSet(stateSet_.get());
-    regionName_ = region->getId(); 
-    surfaces_.push_back(region);
-}
-*/
-
 void SmilRegion3D::parse(const TiXmlNode* xmlNode, const double time) {
 
+    BaseRegion::parse(xmlNode, time);
     osgAnimation::FloatKeyframeContainer* timingKeys        = timingSampler_->getOrCreateKeyframeContainer();
 
     const char* fileName = xmlNode->ToElement()->Attribute("src"); 
@@ -129,19 +120,12 @@ void SmilRegion3D::parse(const TiXmlNode* xmlNode, const double time) {
             timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin, 0));
 
         timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin + mediaDur, (float)mediaItems_.size()));
-
-        // set fades if no alpha keys are not set
-        if(!parseAlpha(xmlNode, time)) {
-            setFadeIn(time + mediaBegin, 1.0, 1.0);
-            setFadeOut(time + mediaBegin + mediaDur, 1.0, 1.0);
-        }
     }
 }
 
 
 void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
 
-    char delimiter = ',';
     const TiXmlNode* node;
 
     MapVec3 positionChannels;
@@ -149,8 +133,8 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
     MapVec3 rotationChannels;
     MapVec3::iterator ir;
 
-    float mainDur = convertToFloat(xmlNode->ToElement()->Attribute("dur"));
     float mediaBegin = convertToFloat(xmlNode->ToElement()->Attribute("begin"));
+
     parse3DCamera(xmlNode, time);
 
     for ( node = xmlNode->FirstChild("animate3D"); node; node = node->NextSibling("animate3D")) {
@@ -213,7 +197,6 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
         for(ic = positionChannels.begin(); ic != positionChannels.end(); ic++) {
             anim1->addChannel(ic->second);
         }
-
     }
 
     if(rotationChannels.size() > 0) {
@@ -222,18 +205,9 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
         for(ir = rotationChannels.begin(); ir != rotationChannels.end(); ir++) {
             anim1->addChannel(ir->second);
         }
-
     }
-
 
     manager->playAnimation(anim1);
-/*
-    // set fades if no alpha keys are not set
-    if(!parseAlpha(xmlNode, time)) {
-        setFadeIn(time + mediaBegin, 1.0, 1.0);
-        setFadeOut(time + mediaBegin + mainDur, 1.0, 1.0);
-    }
-    */
 }
 
 

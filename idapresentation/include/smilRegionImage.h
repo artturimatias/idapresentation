@@ -17,7 +17,6 @@ public:
 
 private:
 
-    osg::ref_ptr<osgAnimation::Vec4LinearSampler>   panZoomSampler_;
     std::vector<std::string>            mediaItems_;
 
     osg::ref_ptr<osg::Texture2D>        tex_;

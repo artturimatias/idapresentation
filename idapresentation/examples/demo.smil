@@ -98,8 +98,8 @@
             </text>
 		    <img src="images/tux.png" dur="15" region="image" >
               <animate attributeName="rotation" dur="2" to="90"/>
-              <animate attributeName="position" dur="2" to="0,25"/>
-              <animate attributeName="rotation" dur="2" to="0"/>
+              <animate attributeName="position" wait="2" dur="2" to="0,25"/>
+              <animate attributeName="rotation" wait="2" dur="2" to="0"/>
             </img>
           </par>
         </seq>

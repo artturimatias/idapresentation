@@ -36,9 +36,6 @@ void SmilRegionText::parse (const TiXmlNode* xmlNode, const double time) {
     mediaItems_.push_back(textVal);
     timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin + dur, (float)mediaItems_.size()));
 
-    // set fadein/out
-    setFadeIn(time + mediaBegin, 1.0, 1.0);
-    setFadeOut(time + mediaBegin + dur, 1.0, 1.0);
 
 
 }

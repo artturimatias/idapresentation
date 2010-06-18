@@ -29,7 +29,7 @@
 
           <text region="line1" dur="5">Just a second ...
           </text>
-          <model src="models/bridge.osg" dur="10" region="3d" >
+          <model src="models/bridge.osg" begin="2" dur="10" region="3d" >
               <animate   attributeName="alpha"                           dur="1" to="1.0" />
               <animate   attributeName="alpha"                           dur="1" to="0.0" />
               <animate   attributeName="alpha"                           dur="1" to="1.0" />
