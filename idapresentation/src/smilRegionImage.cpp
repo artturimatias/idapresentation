@@ -5,6 +5,7 @@ SmilRegionImage::SmilRegionImage(int left, int top, int w, int h, int z, std::st
 {
     tex_ = new osg::Texture2D();
     texMat_ = new osg::TexMat;
+    texMat_->setMatrix(osg::Matrix::identity());
 
     // make sure that alpha channel is working
     tex_->setInternalFormat(GL_RGBA);
@@ -17,7 +18,6 @@ SmilRegionImage::SmilRegionImage(int left, int top, int w, int h, int z, std::st
     stateSet_->setTextureAttributeAndModes(0, texMat_,osg::StateAttribute::ON);
     stateSet_->setAttribute(new osg::Material, true);
 
-    texMat_->setMatrix(osg::Matrixd::scale(osg::Vec3d(1,1,0.0)));
     stateSet_->setRenderingHint( osg::StateSet::TRANSPARENT_BIN );
     osg::Material* material = dynamic_cast<osg::Material*>(stateSet_->getAttribute(osg::StateAttribute::MATERIAL));
     if(material) {
@@ -50,66 +50,8 @@ void SmilRegionImage::parse (const TiXmlNode* xmlNode, const double time) {
         timingKeys->push_back(osgAnimation::FloatKeyframe(time + mediaBegin + dur, (float)mediaItems_.size()));
     }
 
-/*
-    // set panzoom animation
-    panZoomKeys->push_back(osgAnimation::Vec4Keyframe(time, osg::Vec4(0,0,1,1)));
-
-    const TiXmlNode* node;
-    for ( node = xmlNode->FirstChild("animate"); node; node = node->NextSibling("animate")) {
-        if(node) {
-            const char* const attributeName = node->ToElement()->Attribute("attributeName"); 
-            float animDur = convertToFloat(node->ToElement()->Attribute("dur")); 
-            float animBegin = convertToFloat(node->ToElement()->Attribute("begin")); 
-
-            switch (tagList[attributeName]) {
-
-            case PanZoom: {
-
-                    const char* const fromStr = node->ToElement()->Attribute("from"); 
-                    const char* const toStr = node->ToElement()->Attribute("to"); 
-
-                    animBegin += mediaBegin; // animation starts after media element's begin value
-
-
-                    if(fromStr && toStr) {
-                        
-                        osg::Vec4 fromVec; 
-                        osg::Vec4 toVec; 
-
-                        std::vector<std::string> fromList = split2(fromStr,delimiter);
-                        std::vector<std::string> toList = split2(toStr,delimiter);
-
-                        fromVec.set(convertToFloat(fromList[0])/100, 
-                                    convertToFloat(fromList[1])/100,
-                                    convertToFloat(fromList[2])/100,
-                                    convertToFloat(fromList[3])/100);
-
-                        toVec.set(  convertToFloat(toList[0])/100, 
-                                    convertToFloat(toList[1])/100,
-                                    convertToFloat(toList[2])/100,
-                                    convertToFloat(toList[3])/100);
-
-                        float animEnd;
-                        if((animBegin+animDur) > (mediaBegin+dur))
-                            animEnd = mediaBegin+dur;
-                        else
-                            animEnd = animBegin+animDur;
-
-                        std::cout << "setting panzoom keys time:" << time+animBegin << " fromx:" <<  fromVec[0] << " toX:" << toVec[0] << std::endl;
-                        std::cout << "seetting panzoom keys time:" << animEnd << " fromY:" <<  fromVec[1] << " toY:" << toVec[1] << std::endl;
-
-                       panZoomKeys->push_back(osgAnimation::Vec4Keyframe(time + animBegin, fromVec));
-                       panZoomKeys->push_back(osgAnimation::Vec4Keyframe(time + animEnd, toVec));
-                    }
-
-            break;
-            }
-            }            
-        }
-    }
-    */
-
 }
+
 
 void SmilRegionImage::update(const double time) {
 
@@ -154,7 +96,7 @@ void SmilRegionImage::update(const double time) {
 
         // update texture matrix
         osg::Matrix m;
-        m.makeScale(osg::Vec3d(vec[2],vec[3],0.0));
+        m.postMultScale(osg::Vec3d(vec[2],vec[3],0.0));
         m.postMultTranslate(osg::Vec3d(vec[0], vec[1] ,0.0));
         texMat_->setMatrix(m);
     }
@@ -235,28 +177,24 @@ void SmilRegionImage::resize(int s, int t) {
 
       }
     } else if (fillMode_ == "slice") { // scale texture coordinates to fit
-//       osg::notify(osg::ALWAYS) << "ruutusuhde:" << w << "/" << h << "=" << frameRatio <<std::endl;
-//       osg::notify(osg::ALWAYS) << "kuvasuhde:" << s << "/" << t << "=" << imageRatio <<std::endl;
 
       if( imageRatio > frameRatio) {
 
-/*
-       osg::notify(osg::ALWAYS) << "kuva on leveempi:" << s << "/" << t << "=" << imageRatio <<std::endl;
-        osg::Matrix m;
-        m.makeScale(osg::Vec3d(imageRatio,1,0.0));
-        texMat_->setMatrix(m);
-*/
+	float scale = 1/((imageRatio * regionSizePixels.y())/regionSizePixels.x());
+        texMatInit_.makeScale(osg::Vec3d(scale,1,0.0));
+        texMatInit_.postMultTranslate(osg::Vec3d(0.5 - scale/2, 0.0, 0.0));
+        texMat_->setMatrix(texMatInit_);
 
       } else {
-/*
-       osg::notify(osg::ALWAYS) << "kuva on korkeempi:" << s << "/" << t << "=" << imageRatio <<std::endl;
-        osg::Matrix m;
-        m.makeScale(osg::Vec3d(1,imageRatio,0.0));
-        texMat_->setMatrix(m);
-*/
+
+	
+	float scale = 1/(regionSizePixels.x() * (1/imageRatio/regionSizePixels.y()) );
+        texMatInit_.makeScale(osg::Vec3d(1.0, scale, 0.0));
+        texMatInit_.postMultTranslate(osg::Vec3d(0.0, 0.5-scale/2, 0.0));
+        texMat_->setMatrix(texMatInit_);
 
       }
-    } else if (fillMode_ == "fill") { // fill is the default, distorts image
+    } else if (fillMode_ == "fill") { // do nothing, distorts image
 
     }
 }

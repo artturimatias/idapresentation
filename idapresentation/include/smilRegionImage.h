@@ -23,7 +23,7 @@ private:
     osg::ref_ptr<osg::TexMat>           texMat_;
     osg::ref_ptr<osg::Image>            image_;
 
-
+    osg::Matrix          		texMatInit_;
 
 };
 #endif
