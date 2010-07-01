@@ -1,8 +1,8 @@
 IDIR= include
 ODIR= src/obj
 SDIR= src
-OSG_LIBS= -losg -losgUtil -losgViewer -losgAnimation -ltinyxml -lcurl 
-CFLAGS= -W -Wall -g -I$(IDIR)
+OSG_LIBS= -losg -losgUtil -losgViewer -losgAnimation -ltinyxml -lcurl  
+CFLAGS= -W -Wall -g -I$(IDIR) `pkg-config QtWebKit --libs --cflags`
 CCC= g++
 OUT= viewer
 includes = $(wildcard include/*.h)

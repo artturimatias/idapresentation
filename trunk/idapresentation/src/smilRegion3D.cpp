@@ -25,6 +25,7 @@ void SmilRegion3D::setupCamera() {
     unsigned int samples = 0;
     unsigned int colorSamples = 0;
     
+    // color texture
     tex_ = new osg::Texture2D;
     tex_->setTextureSize(tex_width, tex_height);
     tex_->setInternalFormat(GL_RGBA);
@@ -33,6 +34,7 @@ void SmilRegion3D::setupCamera() {
     
     stateSet_->setTextureAttributeAndModes(0, tex_, osg::StateAttribute::ON);
     stateSet_->setAttribute(new osg::Material, true);
+
 
     HE_Geometry->setColorBinding (osg::Geometry::BIND_OFF);
 
@@ -49,7 +51,7 @@ void SmilRegion3D::setupCamera() {
     osg::StateSet* states = camera->getOrCreateStateSet();
     states->setMode(GL_LIGHTING, osg::StateAttribute::OFF);
 
-    osg::Camera::RenderTargetImplementation renderImplementation = osg::Camera::FRAME_BUFFER;
+    osg::Camera::RenderTargetImplementation renderImplementation = osg::Camera::FRAME_BUFFER_OBJECT;
     // tell the camera to use OpenGL frame buffer object where supported.
     camera->setRenderTargetImplementation(renderImplementation);
 
@@ -82,9 +84,12 @@ void SmilRegion3D::setupCamera() {
     else
     {
         // attach the texture and use it as the color buffer.
-        camera->attach(osg::Camera::COLOR_BUFFER, tex_, 
-                       0, 0, false,
-                       samples, colorSamples);
+        //camera->attach(osg::Camera::COLOR_BUFFER, tex_, 
+          //             0, 0, false,
+            //           samples, colorSamples);
+        camera->attach(osg::Camera::COLOR_BUFFER, tex_);
+        //camera->attach(osg::Camera::DEPTH_BUFFER, textureD);
+
     }
 
 
@@ -162,9 +167,9 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
                         parent->removeChild(osgNode);
                         pos->addChild(osgNode);
                         parent->addChild(pos);
-                        osgAnimation::UpdateTransform* up = dynamic_cast<osgAnimation::UpdateTransform*> (osgNode->getParent(0)->getUpdateCallback());
+                        osgAnimation::UpdateMatrixTransform* up = dynamic_cast<osgAnimation::UpdateMatrixTransform*> (osgNode->getParent(0)->getUpdateCallback());
                         if(!up) {
-                            pos->setUpdateCallback(new osgAnimation::UpdateTransform(sel)); 
+                            pos->setUpdateCallback(new osgAnimation::UpdateMatrixTransform(sel)); 
                         }
 
 
@@ -188,7 +193,7 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
     }
 
     osgAnimation::Animation* anim1 = new osgAnimation::Animation;
-    anim1->setPlaymode(osgAnimation::Animation::ONCE); 
+    anim1->setPlayMode(osgAnimation::Animation::ONCE); 
     manager->registerAnimation(anim1);
 
     if(positionChannels.size() > 0) {
