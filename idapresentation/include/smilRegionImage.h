@@ -1,6 +1,8 @@
 
 #ifndef SMILREGIONIMAGE_H
 #define SMILREGIONIMAGE_H
+#include <osgDB/FileUtils>
+#include <osg/ImageStream>
 #include "smilRegion.h"
 
 class SmilRegionImage: public SmilRegion {
@@ -10,10 +12,13 @@ public:
     void update               (const double time);
     void parse               (const TiXmlNode* xmlNode, const double time);  
 
-    void setFit               (std::string& fit);
+    void setFit               (const std::string& fit);
     void resize               (int s, int t);   
     float getTopOffset        (float x);
     void loadFile             (const std::string& filename );
+    void setShader            (const std::string& filename );
+    bool loadShaderSource     (osg::Shader* obj, const std::string& fileName );
+
 
 private:
 

@@ -1,0 +1,80 @@
+<smil>
+  <head>
+    <layout>
+      <root-layout >
+        <!-- image regions -->
+        <regionImage left="10" top="25" width="20" height="40" z="-7" fit="meet" id="left" />
+		<regionImage left="40" top="25" width="20" height="40" z="-7" fit="slice" id="middle"/>
+        <regionImage left="70" top="25" width="20" height="40" z="-7" fit="fill" id="right"/>
+        
+        <regionImage left="10" top="25" width="20" height="40" z="-8" fit="fill" id="left_back" />
+		<regionImage left="40" top="25" width="20" height="40" z="-8" fit="fill" id="middle_back"/>
+        <regionImage left="70" top="25" width="20" height="40" z="-8" fit="fill" id="right_back"/>
+        
+        <regionImage left="0" top="0" width="100" height="100" z="-9" fit="slice" id="background" src="images/koli_finland2.jpg"/>
+        <regionImage left="90" top="0" width="10" height="10" z="-7" fit="meet" id="logo" src="images/demo.png"/>
+
+        <!-- text regions -->
+		<regionText  left="10" top="10"  width="100" height="20"  z="-3"  fontSize="60" id="title" />
+		<regionText  left="10" top="15"  width="20" height="20"  z="-3" id="subtitulo" />
+		<regionText  left="10" top="68"  width="20" height="20"  z="-3" id="m">meet</regionText>
+		<regionText  left="39" top="68"  width="20" height="20"  z="-3" id="s">slice</regionText>
+		<regionText  left="69" top="68"  width="20" height="20"  z="-3" id="f">fill</regionText>
+	
+      </root-layout>
+   </layout>
+  </head>
+ <body>
+
+   <seq>
+     <par>
+      <text region="title" begin="2" dur="60">Different fit modes
+      </text>
+      <seq>
+		<par>
+		  <text region="subtitulo" begin="2" dur="20">Very wide image
+		  </text>
+		  <img src="images/levee.png" begin="5" dur="15" region="left" >
+		    <animate attributeName="panZoom" dur="5" to="-100,0,100,100"/>
+		    <animate attributeName="panZoom" dur="5" to="-100,0,25,25"/>
+          </img>
+		  <img src="images/levee.png" begin="5" dur="15" region="middle" />        
+		  <img src="images/levee.png" begin="5" dur="15" region="right" />
+		  
+		  <img src="images/gray.png" begin="5" dur="10" region="left_back" />
+		  <img src="images/gray.png" begin="5" dur="10" region="middle_back" />
+		  <img src="images/gray.png" begin="5" dur="10" region="right_back" />      
+		  
+		</par>
+
+		<par>
+		  <text region="subtitulo" begin="2" dur="20">Very narrow image
+		  </text>
+		  <img src="images/pitka.png" begin="5" dur="15" region="left" />
+		  <img src="images/pitka.png" begin="5" dur="15" region="middle" />
+		  <img src="images/pitka.png" begin="5" dur="15" region="right" />
+		  
+		  <img src="images/gray.png" begin="5" dur="10" region="left_back" />
+		  <img src="images/gray.png" begin="5" dur="10" region="middle_back" />
+		  <img src="images/gray.png" begin="5" dur="10" region="right_back" />      
+		  
+		</par>
+
+
+		<par>
+		  <img src="images/checkerboard.png" dur="20" region="left" />
+		  <img src="images/checkerboard.png" dur="20" region="middle" />        
+		  <img src="images/checkerboard.png" dur="20" region="right" />
+		  
+		  <img src="images/gray.png" dur="10" region="left_back" />
+		  <img src="images/gray.png" dur="10" region="middle_back" />
+		  <img src="images/gray.png" dur="10" region="right_back" />      
+		  
+		</par>
+	  </seq>
+	</par>
+
+  </seq>
+ </body>
+</smil>
+

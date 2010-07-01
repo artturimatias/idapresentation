@@ -4,7 +4,8 @@
 #include <osg/PositionAttitudeTransform>
 #include <osg/MatrixTransform>
 #include <osgAnimation/BasicAnimationManager>
-#include <osgAnimation/UpdateCallback> 
+#include <osgAnimation/AnimationUpdateCallback> 
+#include <osgAnimation/UpdateMatrixTransform> 
 #include "smilRegion.h"
 #include "cameraCallback.h"
 #include <boost/bind.hpp>

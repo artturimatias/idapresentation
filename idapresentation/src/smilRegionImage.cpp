@@ -9,7 +9,6 @@ SmilRegionImage::SmilRegionImage(int left, int top, int w, int h, int z, std::st
 
     // make sure that alpha channel is working
     tex_->setInternalFormat(GL_RGBA);
-    //tex_->setResizeNonPowerOfTwoHint(false);
 
     tex_->setWrap( osg::Texture2D::WRAP_S , osg::Texture2D::REPEAT );
     tex_->setWrap( osg::Texture2D::WRAP_T , osg::Texture2D::REPEAT );
@@ -27,8 +26,54 @@ SmilRegionImage::SmilRegionImage(int left, int top, int w, int h, int z, std::st
 
     HE_Geometry->setColorBinding (osg::Geometry::BIND_OFF);
 
+    // load ffmpeg plugin
+//    std::string libName = osgDB::Registry::instance()->createLibraryNameForExtension("ffmpeg"); 
+  //  osgDB::Registry::instance()->loadLibrary(libName); 
+
 
 }
+
+void SmilRegionImage::setShader(const std::string& filename ) {
+
+   osg::Program* brickProgramObject = new osg::Program;
+   osg::Shader* brickVertexObject = 
+      new osg::Shader( osg::Shader::VERTEX );
+   osg::Shader* brickFragmentObject = 
+      new osg::Shader( osg::Shader::FRAGMENT );
+   brickProgramObject->addShader( brickFragmentObject );
+   brickProgramObject->addShader( brickVertexObject );
+   loadShaderSource( brickVertexObject, "shaders/bw.vert" );
+   loadShaderSource( brickFragmentObject, "shaders/bw.frag" );
+
+   stateSet_->setAttributeAndModes(brickProgramObject, osg::StateAttribute::ON);
+
+
+
+}
+
+
+bool SmilRegionImage::loadShaderSource (osg::Shader* obj, const std::string& fileName ) {
+
+       std::string fqFileName = osgDB::findDataFile(fileName);
+       if( fqFileName.length() == 0 )
+       {
+          std::cout << "File \"" << fileName << "\" not found." << std::endl;
+          return false;
+       }
+       bool success = obj->loadShaderSourceFromFile( fqFileName.c_str());
+       if ( !success  )
+       {
+          std::cout << "Couldn't load file: " << fileName << std::endl;
+          return false;
+       }
+       else
+       {
+          return true;
+       }
+
+
+}
+
 
 void SmilRegionImage::parse (const TiXmlNode* xmlNode, const double time) {
 
@@ -118,20 +163,35 @@ void SmilRegionImage::update(const double time) {
 
 void SmilRegionImage::loadFile( const std::string& filename ) {
 
+    osg::ref_ptr<osg::ImageStream> mImageStream;
     osg::notify(osg::WARN) << "loading image:" << filename << std::endl;
-    image_ = osgDB::readImageFile(filename);
+    //image_ = osgDB::readImageFile(filename);
+
+    osg::Image* img = osgDB::readImageFile(filename);
+    mImageStream = dynamic_cast<osg::ImageStream*>(img);
+
+    if (mImageStream.valid()) {
+        std::cout << "Got movie" << std::endl;
+        tex_->setInternalFormat(GL_RGB);
+        tex_->setResizeNonPowerOfTwoHint(false);
+        mImageStream->play();
+    } else {
+        std::cout << "No movie!" << std::endl;
+    }
+
+
     // texture
-    if(!image_.valid()) {
+    if(!img->valid()) {
         osg::notify(osg::WARN) << "in Image::loadImage(), failed to load image:" << filename << std::endl;
         return;
     } else {
 
-            float s = image_->s();
-            float t = image_->t();
+            float s = img->s();
+            float t = img->t();
 
             std::cout << "image size: " << s << " x " << t << std::endl; 
             tex_->setTextureSize(s,t);
-            tex_->setImage(image_);
+            tex_->setImage(img);
             resize(s, t);
     }
     //image_->ensureValidSizeForTexturing(1024);
@@ -140,7 +200,7 @@ void SmilRegionImage::loadFile( const std::string& filename ) {
 
 
 
-void SmilRegionImage::setFit(std::string& fit) {
+void SmilRegionImage::setFit(const std::string& fit) {
 
     fillMode_ = fit;
 }
@@ -180,15 +240,15 @@ void SmilRegionImage::resize(int s, int t) {
 
       if( imageRatio > frameRatio) {
 
-	float scale = 1/((imageRatio * regionSizePixels.y())/regionSizePixels.x());
+    float scale = 1/((imageRatio * regionSizePixels.y())/regionSizePixels.x());
         texMatInit_.makeScale(osg::Vec3d(scale,1,0.0));
         texMatInit_.postMultTranslate(osg::Vec3d(0.5 - scale/2, 0.0, 0.0));
         texMat_->setMatrix(texMatInit_);
 
       } else {
 
-	
-	float scale = 1/(regionSizePixels.x() * (1/imageRatio/regionSizePixels.y()) );
+    
+        float scale = 1/(regionSizePixels.x() * (1/imageRatio/regionSizePixels.y()) );
         texMatInit_.makeScale(osg::Vec3d(1.0, scale, 0.0));
         texMatInit_.postMultTranslate(osg::Vec3d(0.0, 0.5-scale/2, 0.0));
         texMat_->setMatrix(texMatInit_);

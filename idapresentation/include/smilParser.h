@@ -8,6 +8,15 @@
 #define SMILPARSER_H
 #include <osgDB/ReadFile>
 
+
+#include <QtWebKit/QWebSettings>
+#include <QtWebKit/QtWebKit>
+#include <QtGui/QGraphicsScene>
+#include <QtGui/QGraphicsView>
+#include <QtGui/QApplication>
+#include <QtGui/QPainter>
+#include <QtGui/QtEvents>
+
 #include <string>
 #include <iostream>
 #include <vector>
