@@ -18,6 +18,53 @@
 
 int gPage = 0;
 std::vector<int> pageQueue;
+PresentationParser* pp; 
+
+// Thread that runs the viewer's frame loop as we can't run Qt in the background...
+class ViewThread : public OpenThreads::Thread
+{
+    public:
+
+        ViewThread(osgViewer::ViewerBase* viewerBase, bool doQApplicationExit):
+            _viewer(viewerBase),
+            _doQApplicationExit(doQApplicationExit) {}
+
+        ~ViewThread()
+        {
+            cancel();
+            while(isRunning())
+            {
+                OpenThreads::Thread::YieldCurrentThread();
+            }
+        }
+
+        int cancel()
+        {
+            _viewer->setDone(true);
+            return 0;
+        }
+
+        void run()
+        {
+            //int result = _viewerBase->run();
+            while(!_viewer->done()) {
+                
+                    pp->update();
+                    _viewer->frame();
+
+                    // loop code
+                    if(!pp->isRunning() && pp->getShowDuration() > 0.0) {
+                        pp->next();
+                    }
+
+                }
+
+            if (_doQApplicationExit) QApplication::exit();
+        }
+
+        osg::ref_ptr<osgViewer::ViewerBase> _viewer;
+        bool _doQApplicationExit;
+};
 
 class PageHandler : public osgGA::GUIEventHandler
 {
@@ -171,9 +218,13 @@ int main (int argc, char **argv ) {
 
 //    osgDB::getDataFilePathList().push_back("/home/arihayri/IDA3/data/images");
 
+#ifdef QTWEBKIT
+    QApplication app(argc, argv);
+#endif
+
     osg::ref_ptr<osg::Group> rootMain = new osg::Group;
 
-    osgViewer::Viewer               viewer;
+    //osgViewer::Viewer               viewer;
     osgViewer::Viewer::Windows      windows;
     osg::Camera*                    camera;
 
@@ -181,14 +232,15 @@ int main (int argc, char **argv ) {
     unsigned int                    width, height;
     int                             x,y,w_width,w_height;
 
+    osg::ref_ptr<osgViewer::Viewer> viewer = new osgViewer::Viewer();
     osg::GraphicsContext::WindowingSystemInterface* wsi = osg::GraphicsContext::getWindowingSystemInterface();
     if (!wsi){
             osg::notify(osg::NOTICE)<<"Error, no WindowSystemInterface available, cannot create windows."<<std::endl;
             return 0;
     }
                                             
-    camera = viewer.getCamera();
-    viewer.getWindows(windows);
+    camera = viewer->getCamera();
+    viewer->getWindows(windows);
     for(osgViewer::Viewer::Windows::iterator itr = windows.begin(); itr != windows.end();++itr)
     {
         (*itr)->useCursor(false);
@@ -226,8 +278,8 @@ int main (int argc, char **argv ) {
     camera->setViewMatrixAsLookAt(osg::Vec3d(-60.0, 0.0, 40.0),
                   osg::Vec3d(0.0, 0.0, 0.0), osg::Vec3d(0.0, 1.0, 0.0));
 
+   pp= new PresentationParser(rootMain, width, height);
 
-    PresentationParser* pp = new PresentationParser(rootMain, width, height);
 
     osg::ArgumentParser arguments(&argc,argv);
     if(arguments.read("--file", fileName)) {
@@ -252,11 +304,11 @@ int main (int argc, char **argv ) {
   //  pp->start(); // not needed
 
 
-    viewer.setSceneData ( rootMain);
+    viewer->setSceneData ( rootMain);
    // bool  result = osgDB::writeNodeFile( * ( rootMain.get() ) , "Callback.osg" ) ;
 
     PageHandler* pageHandler = new PageHandler(pp);
-    viewer.addEventHandler(pageHandler); 
+    viewer->addEventHandler(pageHandler); 
 
 
 
@@ -264,10 +316,19 @@ int main (int argc, char **argv ) {
 //    pthread_t thread1;
  //   int iret1 = pthread_create( &thread1, NULL, server_tcp, NULL);
 
-while(!viewer.done()) {
+#ifdef QTWEBKIT
+
+    // start viewer thread
+    ViewThread qtsaie(viewer.get(), true);
+    qtsaie.startThread();
+    return QApplication::exec();
+
+
+#else
+while(!viewer->done()) {
     
         pp->update();
-        viewer.frame();
+        viewer->frame();
 
         // loop code
         if(!pp->isRunning() && pp->getShowDuration() > 0.0) {
@@ -275,6 +336,8 @@ while(!viewer.done()) {
         }
 
     }
+
+#endif
 
 }
 

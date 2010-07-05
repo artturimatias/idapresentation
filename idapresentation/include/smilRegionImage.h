@@ -3,6 +3,11 @@
 #define SMILREGIONIMAGE_H
 #include <osgDB/FileUtils>
 #include <osg/ImageStream>
+#ifdef QTWEBKIT
+#include <osgQt/QWebViewImage>
+#include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
+#endif
 #include "smilRegion.h"
 
 class SmilRegionImage: public SmilRegion {
