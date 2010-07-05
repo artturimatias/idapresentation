@@ -163,37 +163,54 @@ void SmilRegionImage::update(const double time) {
 
 void SmilRegionImage::loadFile( const std::string& filename ) {
 
+    size_t www;
+    osg::Image* img;
     osg::ref_ptr<osg::ImageStream> mImageStream;
+
     osg::notify(osg::WARN) << "loading image:" << filename << std::endl;
-    //image_ = osgDB::readImageFile(filename);
 
-    osg::Image* img = osgDB::readImageFile(filename);
-    mImageStream = dynamic_cast<osg::ImageStream*>(img);
-
-    if (mImageStream.valid()) {
-        std::cout << "Got movie" << std::endl;
-        tex_->setInternalFormat(GL_RGB);
+    www = filename.find("http://");
+    if (www != std::string::npos) {
+    #ifdef QTWEBKIT
+        osg::ref_ptr<osgQt::QWebViewImage> img = new osgQt::QWebViewImage;
+        img->navigateTo(filename);
+        osg::ref_ptr<osgViewer::InteractiveImageHandler> handler = new osgViewer::InteractiveImageHandler(img.get());
+        HE_Geometry->setCullCallback(handler.get());
         tex_->setResizeNonPowerOfTwoHint(false);
-        mImageStream->play();
-    } else {
-        std::cout << "No movie!" << std::endl;
+        tex_->setImage(img);
+
+    #endif
+    } else  {
+
+        osg::Image* img = osgDB::readImageFile(filename);
+        mImageStream = dynamic_cast<osg::ImageStream*>(img);
+
+        // test if image is stream image
+        if (mImageStream.valid()) {
+            std::cout << "Got movie" << std::endl;
+            tex_->setInternalFormat(GL_RGB);
+            tex_->setResizeNonPowerOfTwoHint(false);
+            mImageStream->play();
+        } else {
+            std::cout << "No movie!" << std::endl;
+        }
+
+        // texture
+        if(!img->valid()) {
+            osg::notify(osg::WARN) << "in Image::loadImage(), failed to load image:" << filename << std::endl;
+            return;
+        } else {
+
+                float s = img->s();
+                float t = img->t();
+
+                std::cout << "image size: " << s << " x " << t << std::endl; 
+                tex_->setTextureSize(s,t);
+                tex_->setImage(img);
+                resize(s, t);
+        }
     }
 
-
-    // texture
-    if(!img->valid()) {
-        osg::notify(osg::WARN) << "in Image::loadImage(), failed to load image:" << filename << std::endl;
-        return;
-    } else {
-
-            float s = img->s();
-            float t = img->t();
-
-            std::cout << "image size: " << s << " x " << t << std::endl; 
-            tex_->setTextureSize(s,t);
-            tex_->setImage(img);
-            resize(s, t);
-    }
     //image_->ensureValidSizeForTexturing(1024);
 
 }

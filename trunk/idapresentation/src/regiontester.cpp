@@ -139,27 +139,30 @@ int main (void) {
     osg::ref_ptr<SmilRegionImage>  reg = new SmilRegionImage(0,0,20,20,-4,"reg1");
     osg::ref_ptr<SmilRegionImage>  regShader = new SmilRegionImage(0,25,100,50,-5,"reg2");
     osg::ref_ptr<SmilRegionImage>  regVideo = new SmilRegionImage(0,65,20,20,-4,"reg3");
+    osg::ref_ptr<SmilRegionImage>  regWeb = new SmilRegionImage(20,65,20,20,-4,"reg4");
     osg::ref_ptr<SmilRegion3D>  reg3D = new SmilRegion3D(10,0,20,20,-2,"reg3D");
 
     camera_hud->addChild(reg->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(regShader->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(regVideo->getTransform(osg::Vec2(width, height)));
+    camera_hud->addChild(regWeb->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(reg3D->getTransform(osg::Vec2(width, height)));
 
-    reg->setFit("meet");
-    regShader->setFit("slice");
+    reg->setFit         ("meet");
+    regShader->setFit   ("slice");
 
-    //reg->loadFile("examples/images/tux.png");
-    reg->loadFile("/home/arihayri/Downloads/Indy_500.ogv");
-    regShader->loadFile("examples/images/koli_finland2.jpg");
-    //regVideo->loadFile("examples/images/tux.png");
-    regVideo->loadFile("/home/arihayri/Documents/video.ogg");
-    reg3D->loadFile("examples/models/color_bars.osg");
+    reg->loadFile       ("/home/arihayri/Downloads/Indy_500.ogv");
+    regShader->loadFile ("examples/images/koli_finland2.jpg");
+    regWeb->loadFile    ("http://www.opendimension.org");
+    regVideo->loadFile  ("/home/arihayri/Documents/video.ogv");
+    reg3D->loadFile     ("examples/models/color_bars.osg");
 
-    reg->setAlpha(1.0f);
-    regShader->setAlpha(1.0f);
-    regVideo->setAlpha(1.0f);
-    reg3D->setAlpha(1.0f);
+    reg->setAlpha       (1.0f);
+    regShader->setAlpha (1.0f);
+    regVideo->setAlpha  (1.0f);
+    regWeb->setAlpha    (1.0f);
+    reg3D->setAlpha     (1.0f);
+
     regShader->setShader("marble");
 
     osg::Uniform* BrightnessUniform   = new osg::Uniform( "Br", 1.0f );
@@ -171,11 +174,14 @@ int main (void) {
 
     rootMain->addChild(camera_hud);
 
+    QApplication app();
     while(!viewer.done()) {
     
+        QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
         viewer.frame();
 
     }
 
+     QApplication::exit();
 }
 

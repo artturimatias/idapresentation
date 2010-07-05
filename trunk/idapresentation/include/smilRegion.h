@@ -15,6 +15,8 @@ public:
     void setAlpha                     (float alpha);
     void setRegionSize                (float x, float y);
 
+    osg::Geode* getGeode              () {return HE_Geode; };
+
 protected:
 
     osg::ref_ptr<osg::Geode>            HE_Geode;
