@@ -1,12 +1,83 @@
 #include "smilRegion3D.h"
 
 
+class SmilCallback: public osg::NodeCallback {
+   public:
+    SmilCallback() {
+
+        camPosSampler_ = new osgAnimation::Vec3LinearSampler;
+        camTargetPosSampler_ = new osgAnimation::Vec3LinearSampler;
+
+        startTime_ = 0.0;
+        playing_ = true;
+}
+
+
+    osgAnimation::Vec3KeyframeContainer* getPosKeys ()          { return camPosSampler_->getOrCreateKeyframeContainer(); }
+    osgAnimation::Vec3KeyframeContainer* getRotKeys ()          { return camTargetPosSampler_->getOrCreateKeyframeContainer(); }
+
+    void setCamPos (osg::Vec3 pos)          {    camPos_ = pos; }
+    void setCamTargetPos (osg::Vec3 pos)    {    camTargetPos_ = pos; }
+
+    void clear() {
+
+        osgAnimation::Vec3KeyframeContainer* camPosKeys = camPosSampler_->getOrCreateKeyframeContainer();
+        osgAnimation::Vec3KeyframeContainer* camTargetPosKeys = camTargetPosSampler_->getOrCreateKeyframeContainer();
+        camPosKeys->clear();
+        camTargetPosKeys->clear();
+    }
+
+   virtual void operator()(osg::Node* node, osg::NodeVisitor* nv)
+   {
+
+        if(playing_ && nv->getVisitorType() == osg::NodeVisitor::UPDATE_VISITOR) {
+        currentTime_ = nv->getFrameStamp()->getSimulationTime();
+        if(startTime_ == 0.0)
+            startTime_ = currentTime_;
+
+        osgAnimation::Vec3KeyframeContainer* camPosKeys = camPosSampler_->getOrCreateKeyframeContainer();
+        osgAnimation::Vec3KeyframeContainer* camTargetPosKeys = camTargetPosSampler_->getOrCreateKeyframeContainer();
+        // return if we do not have keyframes
+        if(camPosKeys->size() > 1 ) {
+
+            osg::Vec3 val;
+            osg::Vec3 valTarget;
+
+            // get position
+            float t = currentTime_ - startTime_;
+            camPosSampler_->getValueAt(t, val);
+
+            osg::ref_ptr<osg::PositionAttitudeTransform> trans = dynamic_cast<osg::PositionAttitudeTransform*> (node );
+
+            if(trans) {
+                trans->setPosition(val);
+            } 
+        }
+
+      traverse(node, nv);
+        }
+   }
+
+    private:
+        bool _first, playing_;
+        double startTime_;
+        double currentTime_;
+        osg::Vec3 camTargetPos_;
+        osg::Vec3 camPos_;
+
+        osg::ref_ptr<osgAnimation::Vec3LinearSampler> camPosSampler_;
+        osg::ref_ptr<osgAnimation::Vec3LinearSampler> camTargetPosSampler_;
+};
+
+
+
+
+
+
 SmilRegion3D::SmilRegion3D(int left, int top, int w, int h, int z, std::string id)
   :SmilRegion(left, top, w, h , z, id)
 {
     modelTransform_ = new osg::MatrixTransform;
-    manager = new osgAnimation::BasicAnimationManager();
-    modelTransform_->setUpdateCallback(manager);
 
 
     tagList["setTransform"] =  SetTransform;
@@ -132,12 +203,6 @@ void SmilRegion3D::parse(const TiXmlNode* xmlNode, const double time) {
 void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
 
     const TiXmlNode* node;
-
-    MapVec3 positionChannels;
-    MapVec3::iterator ic;
-    MapVec3 rotationChannels;
-    MapVec3::iterator ir;
-
     float mediaBegin = convertToFloat(xmlNode->ToElement()->Attribute("begin"));
 
     parse3DCamera(xmlNode, time);
@@ -150,69 +215,30 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
             if(sel) {
                 osg::ref_ptr<osg::Node> osgNode = findNamedNode(sel ,modelTransform_); 
                 if(osgNode) {
-                    // insert transformation node
-                    ic = positionChannels.find(sel);
-                    ir = rotationChannels.find(sel);
-                    if(attr == "position" && ic != positionChannels.end()) {
 
-                        set3dKeys(node, ic->second, time);
-
-                    } else if(attr == "rotation" && ir != rotationChannels.end()) {
-
-                        set3dKeys(node, ir->second, time);
-                   
-                    } else {
-                        osg::ref_ptr<osg::MatrixTransform> pos = new osg::MatrixTransform;
-                        osg::Group* parent = osgNode->getParent(0);
-                        parent->removeChild(osgNode);
-                        pos->addChild(osgNode);
-                        parent->addChild(pos);
-                        osgAnimation::UpdateMatrixTransform* up = dynamic_cast<osgAnimation::UpdateMatrixTransform*> (osgNode->getParent(0)->getUpdateCallback());
+                        SmilCallback* up;
+                        up = dynamic_cast<SmilCallback*>(osgNode->getParent(0)->getUpdateCallback());
+                        // insert transformation node
                         if(!up) {
-                            pos->setUpdateCallback(new osgAnimation::UpdateMatrixTransform(sel)); 
+                            osg::ref_ptr<osg::PositionAttitudeTransform> pos = new osg::PositionAttitudeTransform;
+                            osg::Group* parent = osgNode->getParent(0);
+                            parent->removeChild(osgNode);
+                            pos->addChild(osgNode);
+                            parent->addChild(pos);
+
+                            osg::ref_ptr<SmilCallback> c = new SmilCallback();
+                            pos->setUpdateCallback(c); 
+                            pos->setDataVariance(osg::Object::DYNAMIC); 
+                            up = c;
                         }
 
-
-                        osg::ref_ptr<osgAnimation::Vec3LinearChannel> channel = new osgAnimation::Vec3LinearChannel;
-                        channel->setTargetName(sel);
-                        if(attr == "position") {
-                            channel->setName("position");
-                            positionChannels.insert(std::pair<const char*, osgAnimation::Vec3LinearChannel*>(sel,channel));
-                        } else {
-                            channel->setName("euler");
-                            rotationChannels.insert(std::pair<const char*, osgAnimation::Vec3LinearChannel*>(sel,channel));
-                        }
-                        set3dKeys(node, channel, time);
-
-                    }
-
+                        osgAnimation::Vec3KeyframeContainer* keys = up->getPosKeys();
+                        set3dKeys(node, keys);
 
                 }
             }
         }
     }
-
-    osgAnimation::Animation* anim1 = new osgAnimation::Animation;
-    anim1->setPlayMode(osgAnimation::Animation::ONCE); 
-    manager->registerAnimation(anim1);
-
-    if(positionChannels.size() > 0) {
-        // add 3D animation channels to animation
-        std::cout << positionChannels.size() << std::endl;
-        for(ic = positionChannels.begin(); ic != positionChannels.end(); ic++) {
-            anim1->addChannel(ic->second);
-        }
-    }
-
-    if(rotationChannels.size() > 0) {
-        // add 3D animation channels to animation
-        std::cout << rotationChannels.size() << std::endl;
-        for(ir = rotationChannels.begin(); ir != rotationChannels.end(); ir++) {
-            anim1->addChannel(ir->second);
-        }
-    }
-
-    manager->playAnimation(anim1);
 }
 
 
@@ -254,21 +280,19 @@ void SmilRegion3D::parse3DCamera(const TiXmlNode* xmlNode, const double time) {
 
 
 
-void  SmilRegion3D::set3dKeys  (const TiXmlNode* node, osgAnimation::Vec3LinearChannel* channel, const double time) {
+void  SmilRegion3D::set3dKeys  (const TiXmlNode* node, osgAnimation::Vec3KeyframeContainer* keys) {
 
     osg::Vec3 fromVec, toVec;
     std::string apu;
-    apu = channel->getName();
-    
+    apu = "position";
 
-    osgAnimation::Vec3KeyframeContainer* keys      = channel->getOrCreateSampler()->getOrCreateKeyframeContainer();
 
     if(parseFromTo(node, fromVec, "from", apu.c_str())) {
-        insertFromToKey(node, fromVec, "from", keys, time);
+        insertFromToKey(node, fromVec, "from", keys, 0);
     }
 
     if(parseFromTo(node, toVec, "to", apu.c_str())) {
-        insertFromToKey(node, toVec, "to", keys, time);
+        insertFromToKey(node, toVec, "to", keys, 0);
     }
 }
 
@@ -431,5 +455,8 @@ osg::Node* SmilRegion3D::findNamedNode(const std::string& searchName, osg::Node*
 
 
 }
+
+
+
 
 

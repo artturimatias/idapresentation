@@ -134,7 +134,6 @@ void SmilRegionImage::update(const double time) {
     osg::Vec4 vec;
     osgAnimation::Vec4KeyframeContainer* panZoomKeys = panZoomSampler_->getOrCreateKeyframeContainer();
     
-    // return if we do not have keyframes
     if(panZoomKeys->size() != 0) {
 
         panZoomSampler_->getValueAt(time, vec);

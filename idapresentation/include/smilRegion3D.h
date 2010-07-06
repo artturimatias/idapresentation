@@ -3,9 +3,7 @@
 
 #include <osg/PositionAttitudeTransform>
 #include <osg/MatrixTransform>
-#include <osgAnimation/BasicAnimationManager>
 #include <osgAnimation/AnimationUpdateCallback> 
-#include <osgAnimation/UpdateMatrixTransform> 
 #include "smilRegion.h"
 #include "cameraCallback.h"
 #include <boost/bind.hpp>
@@ -29,7 +27,7 @@ public:
     void setupCamera        ();
     void parse3D            (const TiXmlNode* xmlNode, const double time);
     void parse3DCamera      (const TiXmlNode* xmlNode, const double time);
-    void set3dKeys          (const TiXmlNode* xmlNode, osgAnimation::Vec3LinearChannel* chPosition, const double time);
+    void set3dKeys          (const TiXmlNode* xmlNode, osgAnimation::Vec3KeyframeContainer* keys);
 
     osg::Camera* getCamera  ();
     osg::Node* findNamedNode(const std::string& searchName, osg::Node* currNode);
@@ -45,7 +43,6 @@ private:
     std::vector<std::string>                mediaItems_;
     std::map <std::string, int>              tagList;
 
-    osg::ref_ptr<osgAnimation::BasicAnimationManager> manager;
 };
 
 #endif

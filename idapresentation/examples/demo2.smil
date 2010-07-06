@@ -4,7 +4,7 @@
       <root-layout >
         <!-- image regions -->
         <regionImage left="90" top="0" width="10" height="10" z="-7" fit="meet" id="logo" src="images/demo.png"/>
-        <regionImage left="0" top="0" width="100" height="100" z="-9" fit="slice" id="background" src="images/koli_finland2.jpg"/>
+
 
         <!-- text regions -->
 		<regionText  left="25" top="20" width="100" height="80"  z="-2"  id="line1" />
@@ -28,16 +28,13 @@
       </text>
       <seq>
 
-          <text region="line1" dur="5">Just a second ...
-          </text>
-          <model src="models/bridge.osg" begin="2" dur="10" region="3d" >
-              <animate   attributeName="alpha"                           dur="1" to="1.0" />
-              <animate   attributeName="alpha"                           dur="1" to="0.0" />
-              <animate   attributeName="alpha"                           dur="1" to="1.0" />
-              <animate   attributeName="alpha"                  wait="6" dur="1" to="0.0" />
 
-              <animate3D attributeName="rotation" select="lid" wait="2"  dur="2" from="0,90,0" to="0,-90,0"/>
-              <animate3D attributeName="rotation" select="lid" wait="1"  dur="2" to="0,0,0"/>
+          <model src="models/bridge.osg" dur="10" region="3d" >
+
+
+              <animate3D attributeName="position" select="lid" wait="2" dur="1" to="0,0,10"/>
+              <animate3D attributeName="position" select="lid" wait="2" dur="1" to="0,10,10"/>
+             
 
 
 
