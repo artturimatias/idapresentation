@@ -8,6 +8,7 @@
 #include <osgDB/ReadFile>
 #include <osg/Material>
 #include <osg/PositionAttitudeTransform>
+#include <osgViewer/ViewerEventHandlers>
 #include <osgDB/FileUtils>
 #include "tinyxml.h"
 #include <curl/curl.h>
@@ -19,6 +20,8 @@
 int gPage = 0;
 std::vector<int> pageQueue;
 PresentationParser* pp; 
+
+#ifdef QTWEBKIT
 
 // Thread that runs the viewer's frame loop as we can't run Qt in the background...
 class ViewThread : public OpenThreads::Thread
@@ -65,6 +68,8 @@ class ViewThread : public OpenThreads::Thread
         osg::ref_ptr<osgViewer::ViewerBase> _viewer;
         bool _doQApplicationExit;
 };
+#endif
+
 
 class PageHandler : public osgGA::GUIEventHandler
 {
@@ -309,6 +314,7 @@ int main (int argc, char **argv ) {
 
     PageHandler* pageHandler = new PageHandler(pp);
     viewer->addEventHandler(pageHandler); 
+    viewer->addEventHandler(new osgViewer::StatsHandler);
 
 
 

@@ -7,6 +7,7 @@
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
 #include <osg/Material>
+#include <osgViewer/ViewerEventHandlers>
 #include <osg/PositionAttitudeTransform>
 #include <osgDB/FileUtils>
 #include "tinyxml.h"
@@ -133,6 +134,7 @@ int main (void) {
                   osg::Vec3d(0.0, 0.0, 0.0), osg::Vec3d(0.0, 1.0, 0.0));
 
     viewer.setSceneData ( rootMain);
+    viewer.addEventHandler(new osgViewer::StatsHandler);
     camera_hud = PresentationParser::createCamera(width, height);
    // bool  result = osgDB::writeNodeFile( * ( rootMain.get() ) , "Callback.osg" ) ;
 
@@ -141,30 +143,26 @@ int main (void) {
     osg::ref_ptr<SmilRegionImage>  regVideo = new SmilRegionImage(0,65,20,20,-4,"reg3");
     osg::ref_ptr<SmilRegionImage>  regWeb = new SmilRegionImage(20,65,20,20,-4,"reg4");
     osg::ref_ptr<SmilRegion3D>  reg3D = new SmilRegion3D(10,0,20,20,-2,"reg3D");
-
     camera_hud->addChild(reg->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(regShader->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(regVideo->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(regWeb->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(reg3D->getTransform(osg::Vec2(width, height)));
-
     reg->setFit         ("meet");
-    regShader->setFit   ("slice");
+    regShader->setFit   ("meet");
 
     reg->loadFile       ("/home/arihayri/Downloads/Indy_500.ogv");
     regShader->loadFile ("examples/images/koli_finland2.jpg");
     regWeb->loadFile    ("http://www.opendimension.org");
     regVideo->loadFile  ("/home/arihayri/Documents/video.ogv");
     reg3D->loadFile     ("examples/models/color_bars.osg");
-
     reg->setAlpha       (1.0f);
     regShader->setAlpha (1.0f);
     regVideo->setAlpha  (1.0f);
     regWeb->setAlpha    (1.0f);
     reg3D->setAlpha     (1.0f);
 
-    regShader->setShader("marble");
-
+   // regShader->setShader("marble");
     osg::Uniform* BrightnessUniform   = new osg::Uniform( "Br", 1.0f );
     BrightnessUniform->setUpdateCallback(new AnimateCallback(AnimateCallback::BR));
     osg::StateSet* ss = rootMain->getOrCreateStateSet();
@@ -174,14 +172,20 @@ int main (void) {
 
     rootMain->addChild(camera_hud);
 
+#ifdef QTWEBKIT
     QApplication app();
+#endif
     while(!viewer.done()) {
     
+#ifdef QTWEBKIT
         QCoreApplication::processEvents(QEventLoop::AllEvents, 100);
+#endif
         viewer.frame();
 
     }
 
+#ifdef QTWEBKIT
      QApplication::exit();
+#endif
 }
 

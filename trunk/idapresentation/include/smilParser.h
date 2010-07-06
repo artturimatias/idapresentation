@@ -8,7 +8,7 @@
 #define SMILPARSER_H
 #include <osgDB/ReadFile>
 
-
+#ifdef QTWEBKIT
 #include <QtWebKit/QWebSettings>
 #include <QtWebKit/QtWebKit>
 #include <QtGui/QGraphicsScene>
@@ -16,6 +16,7 @@
 #include <QtGui/QApplication>
 #include <QtGui/QPainter>
 #include <QtGui/QtEvents>
+#endif
 
 #include <string>
 #include <iostream>
