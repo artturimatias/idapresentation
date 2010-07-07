@@ -149,9 +149,9 @@ int main (void) {
     camera_hud->addChild(regWeb->getTransform(osg::Vec2(width, height)));
     camera_hud->addChild(reg3D->getTransform(osg::Vec2(width, height)));
     reg->setFit         ("meet");
-    regShader->setFit   ("meet");
+    regShader->setFit   ("slice");
 
-    reg->loadFile       ("/home/arihayri/Downloads/Indy_500.ogv");
+    reg->loadFile       ("/home/arihayri/Documents/elephants_dream_short.avi");
     regShader->loadFile ("examples/images/koli_finland2.jpg");
     regWeb->loadFile    ("http://www.opendimension.org");
     regVideo->loadFile  ("/home/arihayri/Documents/video.ogv");

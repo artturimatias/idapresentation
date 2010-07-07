@@ -27,8 +27,8 @@ SmilRegionImage::SmilRegionImage(int left, int top, int w, int h, int z, std::st
     HE_Geometry->setColorBinding (osg::Geometry::BIND_OFF);
 
     // load ffmpeg plugin
-//    std::string libName = osgDB::Registry::instance()->createLibraryNameForExtension("ffmpeg"); 
-  //  osgDB::Registry::instance()->loadLibrary(libName); 
+    std::string libName = osgDB::Registry::instance()->createLibraryNameForExtension("ffmpeg"); 
+    osgDB::Registry::instance()->loadLibrary(libName); 
 
 
 }
