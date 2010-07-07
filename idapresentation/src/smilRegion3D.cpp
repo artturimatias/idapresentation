@@ -5,7 +5,7 @@ class SmilCallback: public osg::NodeCallback {
    public:
     SmilCallback() {
 
-        camPosSampler_ = new osgAnimation::Vec3LinearSampler;
+        posSampler_ = new osgAnimation::Vec3LinearSampler;
         camTargetPosSampler_ = new osgAnimation::Vec3LinearSampler;
 
         startTime_ = 0.0;
@@ -13,7 +13,7 @@ class SmilCallback: public osg::NodeCallback {
 }
 
 
-    osgAnimation::Vec3KeyframeContainer* getPosKeys ()          { return camPosSampler_->getOrCreateKeyframeContainer(); }
+    osgAnimation::Vec3KeyframeContainer* getPosKeys ()          { return posSampler_->getOrCreateKeyframeContainer(); }
     osgAnimation::Vec3KeyframeContainer* getRotKeys ()          { return camTargetPosSampler_->getOrCreateKeyframeContainer(); }
 
     void setCamPos (osg::Vec3 pos)          {    camPos_ = pos; }
@@ -21,7 +21,7 @@ class SmilCallback: public osg::NodeCallback {
 
     void clear() {
 
-        osgAnimation::Vec3KeyframeContainer* camPosKeys = camPosSampler_->getOrCreateKeyframeContainer();
+        osgAnimation::Vec3KeyframeContainer* camPosKeys = posSampler_->getOrCreateKeyframeContainer();
         osgAnimation::Vec3KeyframeContainer* camTargetPosKeys = camTargetPosSampler_->getOrCreateKeyframeContainer();
         camPosKeys->clear();
         camTargetPosKeys->clear();
@@ -35,17 +35,17 @@ class SmilCallback: public osg::NodeCallback {
         if(startTime_ == 0.0)
             startTime_ = currentTime_;
 
-        osgAnimation::Vec3KeyframeContainer* camPosKeys = camPosSampler_->getOrCreateKeyframeContainer();
-        osgAnimation::Vec3KeyframeContainer* camTargetPosKeys = camTargetPosSampler_->getOrCreateKeyframeContainer();
+        osgAnimation::Vec3KeyframeContainer* posKeys = posSampler_->getOrCreateKeyframeContainer();
+        //osgAnimation::Vec3KeyframeContainer* camTargetPosKeys = camTargetPosSampler_->getOrCreateKeyframeContainer();
         // return if we do not have keyframes
-        if(camPosKeys->size() > 1 ) {
+        if(posKeys->size() > 1 ) {
 
             osg::Vec3 val;
             osg::Vec3 valTarget;
 
             // get position
             float t = currentTime_ - startTime_;
-            camPosSampler_->getValueAt(t, val);
+            posSampler_->getValueAt(t, val);
 
             osg::ref_ptr<osg::PositionAttitudeTransform> trans = dynamic_cast<osg::PositionAttitudeTransform*> (node );
 
@@ -65,7 +65,7 @@ class SmilCallback: public osg::NodeCallback {
         osg::Vec3 camTargetPos_;
         osg::Vec3 camPos_;
 
-        osg::ref_ptr<osgAnimation::Vec3LinearSampler> camPosSampler_;
+        osg::ref_ptr<osgAnimation::Vec3LinearSampler> posSampler_;
         osg::ref_ptr<osgAnimation::Vec3LinearSampler> camTargetPosSampler_;
 };
 
@@ -200,12 +200,11 @@ void SmilRegion3D::parse(const TiXmlNode* xmlNode, const double time) {
 }
 
 
-void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
+void SmilRegion3D::parse3D(const TiXmlNode* xmlNode) {
 
     const TiXmlNode* node;
-    float mediaBegin = convertToFloat(xmlNode->ToElement()->Attribute("begin"));
 
-    parse3DCamera(xmlNode, time);
+    parse3DCamera(xmlNode);
 
     for ( node = xmlNode->FirstChild("animate3D"); node; node = node->NextSibling("animate3D")) {
         if(node) {
@@ -243,10 +242,9 @@ void SmilRegion3D::parse3D(const TiXmlNode* xmlNode, const double time) {
 
 
 
-void SmilRegion3D::parse3DCamera(const TiXmlNode* xmlNode, const double time) {
+void SmilRegion3D::parse3DCamera(const TiXmlNode* xmlNode) {
         
     const TiXmlNode* node;
-    char delimiter = ',';
     osg::Vec3 fromVec, toVec;
 
     // clear camera animation
@@ -262,8 +260,6 @@ void SmilRegion3D::parse3DCamera(const TiXmlNode* xmlNode, const double time) {
 
     for ( node = xmlNode->FirstChild("animate3DCamera"); node; node = node->NextSibling("animate3DCamera")) {
         if(node) {
-            float dur = convertToFloat(node->ToElement()->Attribute("dur")); 
-            const char* const beginStr = node->ToElement()->Attribute("begin"); 
             std::string attrStr = node->ToElement()->Attribute("attributeName"); 
             osgAnimation::Vec3KeyframeContainer* keys = camUpdateCallback->getCamPosKeys();
 
@@ -340,7 +336,7 @@ void SmilRegion3D::update (const double time) {
         if(currentItem_ >= mediaItems_.size()   )
               currentItem_ = 0;
         loadFile(mediaItems_.at(currentItem_)); 
-        parse3D(xmlNodes_.at(currentItem_), time); // parse 3D animations
+        parse3D(xmlNodes_.at(currentItem_)); // parse 3D animations
 
         prevVal_ = timingVal;
         currentItem_++;

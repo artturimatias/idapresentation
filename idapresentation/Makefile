@@ -4,12 +4,12 @@ QTWEBKIT=0
 IDIR= include
 ODIR= src/obj
 SDIR= src
-OSG_LIBS= -losg -losgUtil -losgViewer -losgAnimation -losgQt -ltinyxml -lcurl  
+OSG_LIBS= -losg -losgUtil -losgViewer -losgAnimation -ltinyxml -lcurl  
 CFLAGS= -W -Wall -g -I$(IDIR) 
-WKIT=`pkg-config QtWebKit --libs --cflags`
 ifeq ($(QTWEBKIT),1)
     CPPFLAGS= -DQTWEBKIT=1
-
+    CFLAGS+=`pkg-config QtWebKit --libs --cflags`
+    OSG_LIBS+=-losgQt
 endif
 CCC= g++
 OUT= viewer
