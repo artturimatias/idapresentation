@@ -4,6 +4,7 @@
       <root-layout >
         <!-- image regions -->
         <regionImage left="90" top="0" width="10" height="10" z="-7" fit="meet" id="logo" src="images/demo.png"/>
+        <regionImage left="0" top="0" width="100" height="100" z="-9" fit="slice" id="background" src="images/koli_finland2.jpg"/>
 
 
         <!-- text regions -->
