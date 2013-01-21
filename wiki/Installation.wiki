@@ -11,11 +11,8 @@
 
 On Debian-based distros this should install all depecies: 
 
-`apt-get install libcurl4-openssl-dev libopenscenegraph-dev libboost-iostreams-dev`
+`apt-get install libcurl4-openssl-dev libopenscenegraph-dev libboost-iostreams-dev libtinyxml-dev`
 
-Tinyxml is not currently on Ubuntu's repos. You can install Debian package:
-http://packages.debian.org/source/sid/tinyxml. Install first libtinyxml2.5.3 and then 
-libtinyxml-dev.
 
 = Compiling =
 
