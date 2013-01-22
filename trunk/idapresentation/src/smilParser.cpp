@@ -272,7 +272,7 @@ void PresentationParser::parseLayout (TiXmlNode* rootNode) {
                     for ( region = rootLayout->FirstChild(); region; region = region->NextSibling()) {
                         if(region) {
                             // skip comments
-                            if(region->Type() == TiXmlNode::COMMENT) 
+                            if(region->Type() == TiXmlNode::TINYXML_COMMENT) 
                                 continue;
 
                             std::string id = convertToString(region->ToElement()->Attribute("id")); 
